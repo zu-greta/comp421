@@ -33,10 +33,10 @@ CREATE TABLE Users (
 );
 CREATE TABLE Registered (
     user_id INT NOT NULL,
-    username VARCHAR(150) NOT NULL,
+    username VARCHAR(150) UNIQUE NOT NULL, ------------------------------------------------------------add
     password VARCHAR(10) NOT NULL,
     language CHAR(2) DEFAULT 'no' NOT NULL, -- modified from p1
-    history CLOB, 
+    history CLOB, -------------------------------------------------------------------------------------drop?
     PRIMARY KEY (user_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
@@ -59,6 +59,8 @@ CREATE TABLE ArrivalCity(
     PRIMARY KEY (arrival_city, arrival_country),
     FOREIGN KEY (arrival_city, arrival_country) REFERENCES Cities(city_name, country)
 );
+-------------------------------------------------------------------------------------------------CHANGE DATE AND TIME TO TIME AND FREQUENCY
+-------------------------------------------------------------------------------------------------OR ADD FLIGHT INSTANCE TABLE
 CREATE TABLE Flights ( 
     flight_number VARCHAR(7) NOT NULL,
     airline_policy CLOB NOT NULL,
@@ -108,6 +110,7 @@ CREATE TABLE Route (
     FOREIGN KEY (departure_city, departure_country) REFERENCES DepartureCity(departure_city, departure_country),
     FOREIGN KEY (arrival_city, arrival_country) REFERENCES ArrivalCity(arrival_city, arrival_country)
 );
+--ADD FIELDS FOR ROOM AVAILABILITY???
 CREATE TABLE Hotel ( 
     brand_affiliation VARCHAR(50) NOT NULL,
     hotel_address VARCHAR(200) NOT NULL,
@@ -160,6 +163,8 @@ CREATE TABLE FlightBooking (
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (flight_number) REFERENCES Flights(flight_number)
 );
+
+--BOOKING DATES??
 CREATE TABLE HotelBooking ( 
     hotel_reference_number INT NOT NULL,
     user_id INT NOT NULL,
@@ -230,22 +235,37 @@ DROP TABLE Route;
 DROP TABLE ArrivalCity;
 DROP TABLE DepartureCity;
 
-
-
-
-
-
--- Include your INSERT SQL statements in this file.
--- Make sure to terminate each statement with a semicolon (;)
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------
 
 -- LEAVE this statement on. It is required to connect to your database.
 CONNECT TO COMP421;
 
--- Remember to put the INSERT statements for the tables with foreign key references
---    ONLY AFTER the insert for the parent tables!
+INSERT INTO Users (user_id, name, email, phone_number, address, credit_card_information) VALUES
+    (1, 'John Doe', 'jdoe@gmail.com', '+1(514)123-4567', '1234 Rue Saint-Catherine, Montreal, QC, Canada', '1234123412341234, 12/23, 123'),
+    (2, 'Jane Doe', 'janed@gmail.com', '+1(438)123-4567', '1234 Rue Saint-Catherine, Montreal, QC, Canada', '4321432143214321, 11/25, 321'),
+    (3, 'John Smith', 'jsmith@yahoo.com', '+1(514)345-6789', '321 Blvd Saint-Jean, Pointe-Claire, QC, Canada', '1234432112344321, 06/26, 456'),
+    (4, 'Jane Smith', 'janes@yahoo.com', '+1(438)345-6789', '321 Blvd Saint-Jean, Pointe-Claire, QC, Canada', '4321123443211234, 07/24, 789'),
+    (5, 'John Johnson', 'jj@gmail.com', '+1(514)567-8901', '1111 Blvd Saint-Charles, Montreal, QC, Canada', '1234123443214321, 06/27, 555'),
+    (6, 'Jane Johnson', 'janej@gmail.com', '+1(438)567-8901', '1111 Blvd Saint-Charles, Montreal, QC, Canada', '4321123412344321, 07/25, 666'),
+;
 
--- This is only an example of how you add INSERT statements to this file.
---   You may remove it.
+--Add CONTRAINT to passwords?
+--Format for History:
+--  [flight_reference_number, flight_number, departure_city, departure_country, arrival_city, arrival_country, departure_date_time, arrival_date_time]
+--  [hotel_reference_number, brand_affiliation, city_name, country, DATES!!!!!!!!]
+--  [car_rental_reference_number, car_model, city_name, country, DATES!!!!!!!!]
+INSERT INTO Registered (user_id, username, password, language, history) VALUES
+    (1, 'jdoe', '1234', 'en', '[]'),
+    (2, 'janed', '4321', 'en', '[]'),
+    (3, 'jsmith', '1111', 'fr', '[]'),
+    (4, 'janes', '2222', 'fr', '[]'),
+    (5, 'jj', '3333',,)
+;
+
+
 INSERT INTO CITIES (city_name, country) VALUES
     ('Vancouver', 'Canada'),
     ('Montreal', 'Canada'),
@@ -675,3 +695,17 @@ INSERT INTO ArrivalCity (arrival_city, arrival_country, airport_arrival_name) VA
     ('Caracas', 'Venezuela', 'Simón Bolívar International Airport'),
     ('Havana', 'Cuba', 'José Martí International Airport')
 ;
+
+--INSERT INTO Flights (flight_number, departure_city, departure_country, arrival_city, arrival_country, departure_date_time, arrival_date_time, flight_duration, flight_cost, flight_company, flight_capacity, flight_model, flight_class, flight_gate, flight_terminal) VALUES
+--   ('AC005', 'Montreal', 'Canada', 'Tokyo', 'Japan', )
+
+
+--NO
+INSERT INTO Car (car_license_plate, car_model, car_type, car_capacity, car_price, car_color, car_year, car_mileage, car_condition, car_fuel_type, car_transmission, car_drive_train, car_description, car_image, carplay) VALUES
+    ('AB1234', 'Toyota Corolla', 'Sedan', 5, 50.00, 'Black', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car1.jpg', 'Yes'),
+    ('AB5678', 'Honda Civic', 'Sedan', 5, 50.00, 'White', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car2.jpg', 'Yes'),
+    ('AB9101', 'Toyota RAV4', 'SUV', 5, 60.00, 'Red', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'AWD', 'A reliable car for your trip.', 'car3.jpg', 'Yes'),
+    ('AB1121', 'Honda CR-V', 'SUV', 5, 60.00, 'Blue', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'AWD', 'A reliable car for your trip.', 'car4.jpg', 'Yes'),
+    ('AB3141', 'Toyota Sienna', 'Minivan', 7, 70.00, 'Silver', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car5.jpg', 'Yes'),
+    ('AB5161', 'Honda Odyssey', 'Minivan', 7, 70.00, 'Grey', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car6.jpg', 'Yes'),
+    ('AB7181', 'Toyota Tacoma', 'Truck', 5, 70.00, 'Black', 2019, 10000, 'Good', 'Gasoline', 'Automatic', '4WD', 'A reliable car for your trip.', 'car7.jpg',
