@@ -36,7 +36,7 @@ CREATE TABLE Registered (
     username VARCHAR(150) UNIQUE NOT NULL, ------------------------------------------------------------add
     password VARCHAR(10) NOT NULL,
     language CHAR(2) DEFAULT 'no' NOT NULL, -- modified from p1
-    history CLOB, -------------------------------------------------------------------------------------drop?
+    --history CLOB, -------------------------------------------------------------------------------------drop?
     PRIMARY KEY (user_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );
@@ -59,8 +59,6 @@ CREATE TABLE ArrivalCity(
     PRIMARY KEY (arrival_city, arrival_country),
     FOREIGN KEY (arrival_city, arrival_country) REFERENCES Cities(city_name, country)
 );
--------------------------------------------------------------------------------------------------CHANGE DATE AND TIME TO TIME AND FREQUENCY
--------------------------------------------------------------------------------------------------OR ADD FLIGHT INSTANCE TABLE
 CREATE TABLE Flights ( 
     flight_number VARCHAR(7) NOT NULL,
     airline_policy CLOB NOT NULL,
@@ -81,7 +79,7 @@ CREATE TABLE Flights (
     departure_date_time DATETIME NOT NULL,
     arrival_date_time DATETIME NOT NULL,
     flight_duration TIME NOT NULL,
-    PRIMARY KEY (flight_number),
+    PRIMARY KEY (flight_number, departure_date_time),
     FOREIGN KEY (departure_city, departure_country) REFERENCES DepartureCity(departure_city, departure_country),
     FOREIGN KEY (arrival_city, arrival_country) REFERENCES ArrivalCity(arrival_city, arrival_country)
 );
@@ -110,7 +108,6 @@ CREATE TABLE Route (
     FOREIGN KEY (departure_city, departure_country) REFERENCES DepartureCity(departure_city, departure_country),
     FOREIGN KEY (arrival_city, arrival_country) REFERENCES ArrivalCity(arrival_city, arrival_country)
 );
---ADD FIELDS FOR ROOM AVAILABILITY???
 CREATE TABLE Hotel ( 
     brand_affiliation VARCHAR(50) NOT NULL,
     hotel_address VARCHAR(200) NOT NULL,
@@ -151,6 +148,7 @@ CREATE TABLE FlightBooking (
     user_id INT NOT NULL,
     passenger_names VARCHAR(600) NOT NULL,
     flight_number VARCHAR(7) NOT NULL,
+    departure_date_time DATETIME NOT NULL,
     flight_total_cost DECIMAL(9, 2) NOT NULL,
     fare_class CHAR(5) NOT NULL,
     seat_numbers VARCHAR(18) NOT NULL,
@@ -161,16 +159,16 @@ CREATE TABLE FlightBooking (
     flight_booking_date DATE NOT NULL,
     PRIMARY KEY (flight_reference_number),
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
-    FOREIGN KEY (flight_number) REFERENCES Flights(flight_number)
+    FOREIGN KEY (flight_number, departure_date_time) REFERENCES Flights(flight_number, departure_date_time)
 );
-
---BOOKING DATES??
 CREATE TABLE HotelBooking ( 
     hotel_reference_number INT NOT NULL,
     user_id INT NOT NULL,
     room_number INT NOT NULL,
     brand_affiliation VARCHAR(50) NOT NULL,
     hotel_address VARCHAR(200) NOT NULL,
+    checkin_date DATE NOT NULL,
+    checkout_date DATE NOT NULL,
     breakfast_inclusion VARCHAR(20) NOT NULL,   
     hotel_total_cost DECIMAL(10, 2) NOT NULL,
     room_cost DECIMAL(6, 2) NOT NULL,
@@ -257,12 +255,12 @@ INSERT INTO Users (user_id, name, email, phone_number, address, credit_card_info
 --  [flight_reference_number, flight_number, departure_city, departure_country, arrival_city, arrival_country, departure_date_time, arrival_date_time]
 --  [hotel_reference_number, brand_affiliation, city_name, country, DATES!!!!!!!!]
 --  [car_rental_reference_number, car_model, city_name, country, DATES!!!!!!!!]
-INSERT INTO Registered (user_id, username, password, language, history) VALUES
-    (1, 'jdoe', '1234', 'en', '[]'),
-    (2, 'janed', '4321', 'en', '[]'),
-    (3, 'jsmith', '1111', 'fr', '[]'),
-    (4, 'janes', '2222', 'fr', '[]'),
-    (5, 'jj', '3333',,)
+INSERT INTO Registered (user_id, username, password, language) VALUES
+    (1, 'jdoe', '1234', 'en'),
+    (2, 'janed', '4321', 'en'),
+    (3, 'jsmith', '1111', 'fr'),
+    (4, 'janes', '2222', 'fr'),
+    (5, 'jj', '3333')
 ;
 
 
@@ -696,9 +694,71 @@ INSERT INTO ArrivalCity (arrival_city, arrival_country, airport_arrival_name) VA
     ('Havana', 'Cuba', 'José Martí International Airport')
 ;
 
---INSERT INTO Flights (flight_number, departure_city, departure_country, arrival_city, arrival_country, departure_date_time, arrival_date_time, flight_duration, flight_cost, flight_company, flight_capacity, flight_model, flight_class, flight_gate, flight_terminal) VALUES
---   ('AC005', 'Montreal', 'Canada', 'Tokyo', 'Japan', )
+INSERT INTO Flights (flight_number, airline_policy, airline, airplane_model, 
+economy_seats, premium_economy_seats, business_seats, first_class_seats, 
+economy_cost, premium_economy_cost, business_cost, first_class_cost, 
+departure_city, departure_country, arrival_city, arrival_country, 
+departure_date_time, arrival_date_time) VALUES
+    ('AC005', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
+    236, 24, 40, NULL, 
+    900.00, 1200.00, 4000.00, NULL,
+    'Montreal', 'Canada', 'Tokyo', 'Japan', 
+    '2024-05-01 13:05:00', '2024-5-02 16:40:00'),
+    ('AC005', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
+    236, 24, 40, NULL, 
+    900.00, 1200.00, 4000.00, NULL,
+    'Montreal', 'Canada', 'Tokyo', 'Japan', 
+    '2024-05-02 13:05:00', '2024-5-03 16:40:00'),
+    ('AC005', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
+    236, 24, 40, NULL, 
+    900.00, 1200.00, 4000.00, NULL,
+    'Montreal', 'Canada', 'Tokyo', 'Japan', 
+    '2024-05-03 13:05:00', '2024-5-04 16:40:00'),
+    ----------------------------------------------------------------------------------------------
+    --ADD RETURN
+    ----------------------------------------------------------------------------------------------
+    ('AC301', 'No checked luggages included', 'Air Canada', 'Boeing 737 MAX 8',
+    153, NULL, 16, NULL,
+    300.00, NULL, 1000.00, NULL,
+    'Montreal', 'Canada', 'Vancouver', 'Canada',
+    '2024-05-01 7:10:00', '2024-05-01 10:00:00'),
+    ----------------------------------------------------------------------------------------------
+    --ADD RETURN
+    ----------------------------------------------------------------------------------------------
+    ('AC405', 'No checked luggages included', 'Air Canada', 'Airbus A321',
+    174, NULL, 16, NULL,
+    120, NULL, 400.00, NULL,
+    'Montreal', 'Canada', 'Toronto', 'Canada',
+    '2024-05-01 9:10:00', '2024-05-01 10:46:00'),
+    ----------------------------------------------------------------------------------------------
+    --ADD RETURN
+    ----------------------------------------------------------------------------------------------
+    ('AC413', 'No checked luggages included', 'Air Canada', 'Airbus A220-300',
+    125, NULL, 12, NULL,
+    150.00, NULL, 500.00, NULL,
+    'Montreal', 'Canada', 'Toronto', 'Canada',
+    '2024-05-01 13:10:00', '2024-05-01 14:46:00'),
+    ----------------------------------------------------------------------------------------------
+    --ADD RETURN
+    ----------------------------------------------------------------------------------------------
+    ('AC003', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
+    236, 24, 40, NULL, 
+    900.00, 1200.00, 4000.00, NULL,
+    'Vancouver', 'Canada', 'Tokyo', 'Japan', 
+    '2024-05-01 13:00:00', '2024-5-02 16:05:00'),
+    ----------------------------------------------------------------------------------------------
+    --ADD RETURN
+    ----------------------------------------------------------------------------------------------
+    ('NH115', '2 checked luggages included, 23kg each', 'All Nippon Airways', 'Boeing 787-9 Dreamliner',
+    146, 21, 48, NULL,
+    1000.00, 1300.00, 4500.00, NULL,
+    'Vancouver', 'Canada', 'Tokyo', 'Japan',
+    '2024-05-01 15:15:00', '2024-05-02 18:45:00'),
+    ----------------------------------------------------------------------------------------------
+    --ADD RETURN
+    ----------------------------------------------------------------------------------------------
 
+;
 
 --NO
 INSERT INTO Car (car_license_plate, car_model, car_type, car_capacity, car_price, car_color, car_year, car_mileage, car_condition, car_fuel_type, car_transmission, car_drive_train, car_description, car_image, carplay) VALUES
