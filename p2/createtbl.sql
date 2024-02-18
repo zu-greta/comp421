@@ -104,7 +104,7 @@ CREATE TABLE Car (
     country VARCHAR(50) NOT NULL,
     company_policy CLOB NOT NULL, 
     AC CHAR(1) NOT NULL, -- changed from p1
-    carplay VARCHAR(50),
+    carplay CHAR(1),
     PRIMARY KEY (car_license_plate),
     FOREIGN KEY (city_name, country) REFERENCES Cities(city_name, country)
 );
@@ -700,9 +700,7 @@ INSERT INTO ROUTE (departure_city, departure_country, arrival_city, arrival_coun
     ('Montreal', 'Canada', 'Vancouver', 'Canada'),
     ('Vancouver', 'Canada', 'Montreal', 'Canada'),
     ('Montreal', 'Canada', 'Calgary', 'Canada'),
-    ('Montreal', 'Canada', 'Edmonton', 'Canada'),
-    ('Montreal', 'Canada', 'Ottawa', 'Canada'),
-    ('Montreal', 'Canada', 'Quebec City', 'Canada'),
+    ('Calgary', 'Canada', 'Montreal', 'Canada'),
     ('Montreal', 'Canada', 'Tokyo', 'Japan'),
     ('Tokyo', 'Canada', 'Monteal', 'Canada'),
     ('Vancouver', 'Canada', 'Tokyo', 'Japan'),
@@ -804,11 +802,24 @@ departure_date_time, arrival_date_time) VALUES
 ;
 
 --NO
-INSERT INTO Car (car_license_plate, car_model, car_type, car_capacity, car_price, car_color, car_year, car_mileage, car_condition, car_fuel_type, car_transmission, car_drive_train, car_description, car_image, carplay) VALUES
-    ('AB1234', 'Toyota Corolla', 'Sedan', 5, 50.00, 'Black', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car1.jpg', 'Yes'),
-    ('AB5678', 'Honda Civic', 'Sedan', 5, 50.00, 'White', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car2.jpg', 'Yes'),
-    ('AB9101', 'Toyota RAV4', 'SUV', 5, 60.00, 'Red', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'AWD', 'A reliable car for your trip.', 'car3.jpg', 'Yes'),
-    ('AB1121', 'Honda CR-V', 'SUV', 5, 60.00, 'Blue', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'AWD', 'A reliable car for your trip.', 'car4.jpg', 'Yes'),
-    ('AB3141', 'Toyota Sienna', 'Minivan', 7, 70.00, 'Silver', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car5.jpg', 'Yes'),
-    ('AB5161', 'Honda Odyssey', 'Minivan', 7, 70.00, 'Grey', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car6.jpg', 'Yes'),
-   -- ('AB7181', 'Toyota Tacoma', 'Truck', 5, 70.00, 'Black', 2019, 10000, 'Good', 'Gasoline', 'Automatic', '4WD', 'A reliable car for your trip.', 'car7.jpg',
+INSERT INTO Car (car_license_plate, number_of_seats, car_rental_agency, transmission_type,
+car_model, car_engine_type, car_daily_cost, city_name, country, company_policy, AC, carplay) VALUES
+    ('ABC123', 5, 'Enterprise', 'Automatic', 'Toyota Corolla', 'Gasoline', 
+    50.00, 'Montreal', 'Canada', 'No smoking, Pets allowed, Insurance included', 
+    'Y', 'Y'),
+    ('GRETA21', 2, 'Hertz', 'Automatic', 'Porshe GT3 RS', 'Gasoline',
+    150.00, 'Montreal', 'Canada', 'No smoking, No pets, Insurance included',
+    'Y', 'Y'),
+    ('ZU21', 5, 'AVIS', 'Automatic', 'BMW X3', 'Gasoline',
+    100.00, 'Montreal', 'Canada', 'No smoking, No pets, Insurance included',
+    'Y', 'Y'),
+    ('GRTZ', 5, 'AVIS', 'Automatic', 'Mercedes-Benz CLA250', 'Gasoline',
+    100.00, 'Montreal', 'Canada', 'No smoking, No pets, Insurance included'
+    'Y', 'Y'),
+    ('GZ2003', 2, 'Hertz', 'Automatic', 'Ferrari SF90 Spider', 'Gasoline',
+    400.00, 'Tokyo', 'Japan', 'No smoking, No pets, Insurance included',
+    'Y', 'Y'),
+    ('EMSBAI', 5 'Enterprise', 'Automatic', 'Mercedes-Benz G-Class', 'Gasoline',
+    150.00, 'Tokyo', 'Japan', 'No smoking, No pets, Insurance included',
+    'Y', 'Y'),
+
