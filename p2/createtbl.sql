@@ -59,6 +59,15 @@ CREATE TABLE ArrivalCity(
     PRIMARY KEY (arrival_city, arrival_country),
     FOREIGN KEY (arrival_city, arrival_country) REFERENCES Cities(city_name, country)
 );
+CREATE TABLE Route ( 
+    departure_city VARCHAR(85) NOT NULL,
+    departure_country VARCHAR(50) NOT NULL,
+    arrival_city VARCHAR(85) NOT NULL,
+    arrival_country VARCHAR(50) NOT NULL,
+    PRIMARY KEY (departure_city, departure_country, arrival_city, arrival_country),
+    FOREIGN KEY (departure_city, departure_country) REFERENCES DepartureCity(departure_city, departure_country),
+    FOREIGN KEY (arrival_city, arrival_country) REFERENCES ArrivalCity(arrival_city, arrival_country)
+);
 CREATE TABLE Flights ( 
     flight_number VARCHAR(7) NOT NULL,
     airline_policy CLOB NOT NULL,
@@ -80,8 +89,8 @@ CREATE TABLE Flights (
     arrival_date_time DATETIME NOT NULL,
     flight_duration TIME NOT NULL,
     PRIMARY KEY (flight_number, departure_date_time),
-    FOREIGN KEY (departure_city, departure_country) REFERENCES DepartureCity(departure_city, departure_country),
-    FOREIGN KEY (arrival_city, arrival_country) REFERENCES ArrivalCity(arrival_city, arrival_country)
+    FOREIGN KEY (departure_city, departure_country, arrival_city, arrival_country) REFERENCES Route(departure_city, departure_country, arrival_city, arrival_country),
+    --FOREIGN KEY (arrival_city, arrival_country) REFERENCES ArrivalCity(arrival_city, arrival_country)
 );
 CREATE TABLE Car (
     car_license_plate VARCHAR(10) NOT NULL,
@@ -98,15 +107,6 @@ CREATE TABLE Car (
     carplay VARCHAR(50),
     PRIMARY KEY (car_license_plate),
     FOREIGN KEY (city_name, country) REFERENCES Cities(city_name, country)
-);
-CREATE TABLE Route ( 
-    departure_city VARCHAR(85) NOT NULL,
-    departure_country VARCHAR(50) NOT NULL,
-    arrival_city VARCHAR(85) NOT NULL,
-    arrival_country VARCHAR(50) NOT NULL,
-    PRIMARY KEY (departure_city, departure_country, arrival_city, arrival_country),
-    FOREIGN KEY (departure_city, departure_country) REFERENCES DepartureCity(departure_city, departure_country),
-    FOREIGN KEY (arrival_city, arrival_country) REFERENCES ArrivalCity(arrival_city, arrival_country)
 );
 CREATE TABLE Hotel ( 
     brand_affiliation VARCHAR(50) NOT NULL,
@@ -260,7 +260,7 @@ INSERT INTO Registered (user_id, username, password, language) VALUES
     (2, 'janed', '4321', 'en'),
     (3, 'jsmith', '1111', 'fr'),
     (4, 'janes', '2222', 'fr'),
-    (5, 'jj', '3333')
+    (5, 'jj', '3333', 'en'),
 ;
 
 
@@ -694,6 +694,20 @@ INSERT INTO ArrivalCity (arrival_city, arrival_country, airport_arrival_name) VA
     ('Havana', 'Cuba', 'José Martí International Airport')
 ;
 
+INSERT INTO ROUTE (departure_city, departure_country, arrival_city, arrival_country) VALUES
+    ('Montreal', 'Canada', 'Toronto', 'Canada'),
+    ('Toronto', 'Canada', 'Montreal', 'Canada'),
+    ('Montreal', 'Canada', 'Vancouver', 'Canada'),
+    ('Vancouver', 'Canada', 'Montreal', 'Canada'),
+    ('Montreal', 'Canada', 'Calgary', 'Canada'),
+    ('Montreal', 'Canada', 'Edmonton', 'Canada'),
+    ('Montreal', 'Canada', 'Ottawa', 'Canada'),
+    ('Montreal', 'Canada', 'Quebec City', 'Canada'),
+    ('Montreal', 'Canada', 'Tokyo', 'Japan'),
+    ('Tokyo', 'Canada', 'Monteal', 'Canada'),
+    ('Vancouver', 'Canada', 'Tokyo', 'Japan'),
+    ('Tokyo', 'Japan', 'Vancouver', 'Canada')
+;
 INSERT INTO Flights (flight_number, airline_policy, airline, airplane_model, 
 economy_seats, premium_economy_seats, business_seats, first_class_seats, 
 economy_cost, premium_economy_cost, business_cost, first_class_cost, 
@@ -703,19 +717,24 @@ departure_date_time, arrival_date_time) VALUES
     236, 24, 40, NULL, 
     900.00, 1200.00, 4000.00, NULL,
     'Montreal', 'Canada', 'Tokyo', 'Japan', 
-    '2024-05-01 13:05:00', '2024-5-02 16:40:00'),
+    '2024-05-01 13:05:00', '2024-05-02 16:40:00'),
     ('AC005', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
     236, 24, 40, NULL, 
     900.00, 1200.00, 4000.00, NULL,
     'Montreal', 'Canada', 'Tokyo', 'Japan', 
-    '2024-05-02 13:05:00', '2024-5-03 16:40:00'),
+    '2024-05-02 13:05:00', '2024-05-03 16:40:00'),
     ('AC005', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
     236, 24, 40, NULL, 
     900.00, 1200.00, 4000.00, NULL,
     'Montreal', 'Canada', 'Tokyo', 'Japan', 
-    '2024-05-03 13:05:00', '2024-5-04 16:40:00'),
+    '2024-05-03 13:05:00', '2024-05-04 16:40:00'),
     ----------------------------------------------------------------------------------------------
-    --ADD RETURN
+    ('AC006', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
+    236, 24, 40, NULL, 
+    900.00, 1200.00, 4000.00, NULL,
+    'Tokyo', 'Japan', 'Montreal', 'Canada', 
+    '2024-05-01 18:15:00', '2024-05-02 16:35:00'),
+    ----------------------------------------------------------------------------------------------
     ----------------------------------------------------------------------------------------------
     ('AC301', 'No checked luggages included', 'Air Canada', 'Boeing 737 MAX 8',
     153, NULL, 16, NULL,
@@ -723,7 +742,12 @@ departure_date_time, arrival_date_time) VALUES
     'Montreal', 'Canada', 'Vancouver', 'Canada',
     '2024-05-01 7:10:00', '2024-05-01 10:00:00'),
     ----------------------------------------------------------------------------------------------
-    --ADD RETURN
+    ('AC306', 'No checked luggages included', 'Air Canada', 'Boeing 737 MAX 8',
+    153, NULL, 16, NULL,
+    300.00, NULL, 1000.00, NULL,
+    'Vancouver', 'Canada', 'Montreal', 'Canada',
+    '2024-05-01 11:30:00', '2024-05-01 19:19:00'),
+    ----------------------------------------------------------------------------------------------
     ----------------------------------------------------------------------------------------------
     ('AC405', 'No checked luggages included', 'Air Canada', 'Airbus A321',
     174, NULL, 16, NULL,
@@ -731,7 +755,12 @@ departure_date_time, arrival_date_time) VALUES
     'Montreal', 'Canada', 'Toronto', 'Canada',
     '2024-05-01 9:10:00', '2024-05-01 10:46:00'),
     ----------------------------------------------------------------------------------------------
-    --ADD RETURN
+    ('AC406', 'No checked luggages included', 'Air Canada', 'Airbus A321',
+    174, NULL, 16, NULL,
+    120, NULL, 400.00, NULL,
+    'Toronto', 'Canada', 'Montreal', 'Canada',
+    '2024-05-01 10:00:00', '2024-05-01 11:16:00'),
+    ----------------------------------------------------------------------------------------------
     ----------------------------------------------------------------------------------------------
     ('AC413', 'No checked luggages included', 'Air Canada', 'Airbus A220-300',
     125, NULL, 12, NULL,
@@ -739,7 +768,12 @@ departure_date_time, arrival_date_time) VALUES
     'Montreal', 'Canada', 'Toronto', 'Canada',
     '2024-05-01 13:10:00', '2024-05-01 14:46:00'),
     ----------------------------------------------------------------------------------------------
-    --ADD RETURN
+    ('AC414', 'No checked luggages included', 'Air Canada', 'Airbus A220-300',
+    125, NULL, 12, NULL,
+    150.00, NULL, 500.00, NULL,
+    'Toronto', 'Canada', 'Montreal', 'Canada',
+    '2024-05-01 14:00:00', '2024-05-01 15:20:00'),
+    ----------------------------------------------------------------------------------------------
     ----------------------------------------------------------------------------------------------
     ('AC003', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
     236, 24, 40, NULL, 
@@ -747,7 +781,12 @@ departure_date_time, arrival_date_time) VALUES
     'Vancouver', 'Canada', 'Tokyo', 'Japan', 
     '2024-05-01 13:00:00', '2024-5-02 16:05:00'),
     ----------------------------------------------------------------------------------------------
-    --ADD RETURN
+    ('AC004', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
+    236, 24, 40, NULL, 
+    900.00, 1200.00, 4000.00, NULL,
+    'Tokyo', 'Japan', 'Vancouver', 'Canada', 
+    '2024-05-01 18:55:00', '2024-5-02 10:40:00'),
+    ----------------------------------------------------------------------------------------------
     ----------------------------------------------------------------------------------------------
     ('NH115', '2 checked luggages included, 23kg each', 'All Nippon Airways', 'Boeing 787-9 Dreamliner',
     146, 21, 48, NULL,
@@ -755,9 +794,13 @@ departure_date_time, arrival_date_time) VALUES
     'Vancouver', 'Canada', 'Tokyo', 'Japan',
     '2024-05-01 15:15:00', '2024-05-02 18:45:00'),
     ----------------------------------------------------------------------------------------------
-    --ADD RETURN
+    ('NH116', '2 checked luggages included, 23kg each', 'All Nippon Airways', 'Boeing 787-9 Dreamliner',
+    146, 21, 48, NULL,
+    1000.00, 1300.00, 4500.00, NULL,
+    'Tokyo', 'Japan', 'Vancouver', 'Canada',
+    '2024-05-01 21:55:00', '2024-05-02 13:45:00')
     ----------------------------------------------------------------------------------------------
-
+    ----------------------------------------------------------------------------------------------
 ;
 
 --NO
@@ -768,4 +811,4 @@ INSERT INTO Car (car_license_plate, car_model, car_type, car_capacity, car_price
     ('AB1121', 'Honda CR-V', 'SUV', 5, 60.00, 'Blue', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'AWD', 'A reliable car for your trip.', 'car4.jpg', 'Yes'),
     ('AB3141', 'Toyota Sienna', 'Minivan', 7, 70.00, 'Silver', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car5.jpg', 'Yes'),
     ('AB5161', 'Honda Odyssey', 'Minivan', 7, 70.00, 'Grey', 2019, 10000, 'Good', 'Gasoline', 'Automatic', 'FWD', 'A reliable car for your trip.', 'car6.jpg', 'Yes'),
-    ('AB7181', 'Toyota Tacoma', 'Truck', 5, 70.00, 'Black', 2019, 10000, 'Good', 'Gasoline', 'Automatic', '4WD', 'A reliable car for your trip.', 'car7.jpg',
+   -- ('AB7181', 'Toyota Tacoma', 'Truck', 5, 70.00, 'Black', 2019, 10000, 'Good', 'Gasoline', 'Automatic', '4WD', 'A reliable car for your trip.', 'car7.jpg',
