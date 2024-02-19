@@ -715,7 +715,7 @@ departure_date_time, arrival_date_time, ) VALUES
     236, 24, 40, NULL, 
     900.00, 1200.00, 4000.00, NULL,
     'Montreal', 'Canada', 'Tokyo', 'Japan', 
-    '2024-05-14 13:05:00', '2024-05-15 16:40:00', ‘13:00:00’),
+    '2024-05-14 13:05:00', '2024-05-15 16:40:00', 13:00:00),
     ('AC005', '2 checked luggages included, 23kg each', 'Air Canada', 'Boeing 777-300ER', 
     236, 24, 40, NULL, 
     900.00, 1200.00, 4000.00, NULL,
