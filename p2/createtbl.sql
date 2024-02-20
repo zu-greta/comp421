@@ -28,7 +28,7 @@ CREATE TABLE Users (
     email VARCHAR(150) NOT NULL,
     phone_number VARCHAR(22) NOT NULL,
     address VARCHAR(200) NOT NULL,
-    credit_card_information VARCHAR(20) NOT NULL,
+    credit_card_information VARCHAR(28) NOT NULL,
     PRIMARY KEY (user_id)
 );
 CREATE TABLE Registered (
@@ -134,7 +134,7 @@ CREATE TABLE Room (
     room_capacity INT NOT NULL,
     beds VARCHAR(50) NOT NULL,
     room_price DECIMAL(6, 2) NOT NULL,
-    size DECIMAL(8, 2) NOT NULL, -- changed from p1
+    size VARCHAR(10) NOT NULL, -- changed from p1
     free_wifi CHAR(1) NOT NULL, -- changed from p1
     view VARCHAR(25) NOT NULL, -- changed from p1
     minibar CHAR(1) NOT NULL, -- changed from p1
@@ -150,7 +150,7 @@ CREATE TABLE FlightBooking (
     flight_number VARCHAR(7) NOT NULL,
     departure_date_time DATETIME NOT NULL,
     flight_total_cost DECIMAL(9, 2) NOT NULL,
-    fare_class CHAR(5) NOT NULL,
+    fare_class VARCHAR(10) NOT NULL,
     seat_numbers VARCHAR(18) NOT NULL,
     plane_ticket_cost DECIMAL(8, 2) NOT NULL,
     plane_ticket_surcharge DECIMAL(7, 2) NOT NULL,
@@ -169,7 +169,7 @@ CREATE TABLE HotelBooking (
     hotel_address VARCHAR(200) NOT NULL,
     checkin_date DATE NOT NULL,
     checkout_date DATE NOT NULL,
-    breakfast_inclusion VARCHAR(20) NOT NULL,   
+    --breakfast_inclusion VARCHAR(20) NOT NULL, -- removed from p1   
     hotel_total_cost DECIMAL(10, 2) NOT NULL,
     room_cost DECIMAL(6, 2) NOT NULL,
     hotel_tax DECIMAL(9, 2) NOT NULL,
@@ -188,11 +188,11 @@ CREATE TABLE CarRentalBooking (
     pickup_date_time DATETIME NOT NULL,
     return_date_time DATETIME NOT NULL,
     car_rental_booking_date DATE NOT NULL,
-    car_rental_cost DECIMAL(5, 2) NOT NULL,
-    car_rental_tax DECIMAL(4, 2) NOT NULL,
+    car_rental_cost DECIMAL(6, 2) NOT NULL,
+    car_rental_tax DECIMAL(5, 2) NOT NULL,
     car_rental_booking_fees DECIMAL(4, 2) NOT NULL,
     car_rental_total_cost DECIMAL(7, 2) NOT NULL,
-    insurance CLOB NOT NULL, 
+    insurance VARCHAR(30) NOT NULL, 
     PRIMARY KEY (car_rental_reference_number), 
     FOREIGN KEY (car_license_plate) REFERENCES Car(car_license_plate),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
@@ -1509,12 +1509,12 @@ car_model, car_engine_type, car_daily_cost, city_name, country, company_policy, 
     100.00, 'Montreal', 'Canada', 'No smoking, No pets, Insurance included',
     'Y', 'Y'),
     ('GRTZ', 5, 'AVIS', 'Automatic', 'Mercedes-Benz CLA250', 'Gasoline',
-    100.00, 'Montreal', 'Canada', 'No smoking, No pets, Insurance included'
+    100.00, 'Montreal', 'Canada', 'No smoking, No pets, Insurance included',
     'Y', 'Y'),
     ('GZ2003', 2, 'Hertz', 'Automatic', 'Ferrari SF90 Spider', 'Gasoline',
     400.00, 'Tokyo', 'Japan', 'No smoking, No pets, Insurance included',
     'Y', 'Y'),
-    ('EMSBAI', 5 'Enterprise', 'Automatic', 'Mercedes-Benz G-Class', 'Gasoline',
+    ('EMSBAI', 5, 'Enterprise', 'Automatic', 'Mercedes-Benz G-Class', 'Gasoline',
     150.00, 'Tokyo', 'Japan', 'No smoking, No pets, Insurance included',
     'Y', 'Y')
 ;
@@ -1582,8 +1582,8 @@ size, free_wifi, view, minibar, private_bathroom, smoking) VALUES
     '200 sq ft', 'Y', 'City view', 'Y', 'Y', 'N'),
     ('10-2 Nihonbashi-Kakigara-cho, Chuo-ku', 'APA Hotel', 104, 'Single Room', 1, '1 Double Bed', 80.00,
     '200 sq ft', 'Y', 'City view', 'Y', 'Y', 'N'),
-    ('10-2 Nihonbashi-Kakigara-cho, Chuo-ku', 'APA Hotel', 105, 'Single Room', 1, '1 Double Bed', 80.00,
-    '200 sq ft', 'Y', 'City view', 'Y', 'Y', 'N')
+    ('10-2 Nihonbashi-Kakigara-cho, Chuo-ku', 'APA Hotel', 201, 'Double Room', 2, '2 Double Bed', 130.00,
+    '400 sq ft', 'Y', 'City view', 'Y', 'Y', 'N')
     ;
     INSERT INTO FlightBooking (flight_reference_number, user_id, passenger_names, flight_number, departure_date_time,
     flight_total_cost, fare_class, seat_numbers, plane_ticket_cost, plane_ticket_surcharge, plane_ticket_tax, 
@@ -1600,10 +1600,40 @@ size, free_wifi, view, minibar, private_bathroom, smoking) VALUES
         (4, 4, 'Jane Smith', 'AC405', '2024-05-01 09:10:00',
         535.00, 'Business', 'A1', 400.00, 50.00, 60.00,
         25.00, '2024-04-02'),
-        (4, 4, 'Jane Smith', 'AC406', '2024-05-21 10:00:00',
+        (5, 4, 'Jane Smith', 'AC406', '2024-05-21 10:00:00',
         535.00, 'Business', 'A1', 400.00, 50.00, 60.00,
         25.00, '2024-04-02')
-        ;
-    --INSERT INTO CarBooking (car_license_plate, user_id, car_rental_agency, car_model, car_daily_cost,
-        
+    ;
+    INSERT INTO HotelBooking (hotel_reference_number, user_id, room_number, brand_affiliation, hotel_address,
+    checkin_date, checkout_date, hotel_total_cost, room_cost, hotel_tax, hotel_booking_fees, hotel_booking_date) VALUES
+        (1, 1, 201, 'APA Hotel', '10-2 Nihonbashi-Kakigara-cho, Chuo-ku',
+        '2024-05-02', '2024-05-21', 2727.00, 2470.00, 247.00, 10.00, '2024-04-01'),
+        (2, 3, 101, 'APA Hotel', '10-2 Nihonbashi-Kakigara-cho, Chuo-ku',
+        '2024-05-02', '2024-05-21', 1682.00, 1520.00, 152.00, 10.00, '2024-04-01'),
+        (3, 3, 101, 'Hilton', '1234 Rue Sherbrooke Ouest',
+        '2024-05-22', '2024-05-25', 527.50, 450.00, 67.50, 10.00, '2024-04-01'),
+        (4, 4, 102, 'Hilton', '1234 Rue Sherbrooke Ouest',
+        '2024-05-22', '2024-05-25', 527.50, 450.00, 67.50, 10.00, '2024-04-02'),
+        (5, 4, 101, 'Marriott', '1234 Rue René-Lévesque Ouest',
+        '2024-05-25', '2024-05-28', 527.50, 450.00, 67.50, 10.00, '2024-04-02')
+    ;
+    INSERT INTO CarRentalBooking (car_rental_reference_number, user_id, car_license_plate, pickup_location, return_location,
+    pickup_date_time, return_date_time, car_rental_booking_date, car_rental_cost, car_rental_tax, car_rental_booking_fees,
+    car_rental_total_cost, insurance) VALUES
+        (1, 1, 'EMSBAI', 'Narita International Airport', 'Narita International Airport',
+        '2024-05-02 18:00:00', '2024-05-21 10:00:00', '2024-04-01', 3000.00, 300.00, 10.00, 
+        3310.00, 'Fully covered'),
+        (2, 3, 'GZ2003', 'Narita International Airport', 'Narita International Airport',
+        '2024-05-02 18:00:00', '2024-05-21 10:00:00', '2024-04-01', 8000.00, 800.00, 10.00,
+        8810.00, 'Fully covered'),
+        (3, 4, 'GRTZ', 'AVIS Downtown Montreal', 'AVIS Downtown Montreal',
+        '2024-05-01 10:00:00', '2024-05-22 10:00:00', '2024-04-02', 2200.00, 315.00, 10.00,
+        2425.00, 'Fully covered'),
+        (4, 4, 'ZU21', 'AVIS Downtown Montreal', 'AVIS Downtown Montreal',
+        '2024-05-22 10:00:00', '2024-05-25 10:00:00', '2024-04-02', 400.00, 60.00, 10.00,
+        470.00, 'Fully covered'),
+        (5, 4, 'GRETA21', 'Hertz Peel', 'Hertz Peel',
+        '2024-05-25 10:00:00', '2024-05-28 10:00:00', '2024-04-02', 600.00, 90.00, 10.00,
+        700.00, 'Fully covered')
+    ;
 
