@@ -1,0 +1,50 @@
+DELIMITER $$
+
+CREATE PROCEDURE CalculateHotelBookingCost(
+    IN userID INT
+)
+BEGIN
+    DECLARE totalCost DECIMAL(10, 2);
+    DECLARE roomCost DECIMAL(10, 2);
+    DECLARE tax DECIMAL(10, 2);
+    DECLARE bookingFees DECIMAL(10, 2);
+
+    -- Initialize variables
+    SET totalCost = 0;
+    SET roomCost = 0;
+    SET tax = 0;
+    SET bookingFees = 0;
+
+    -- Cursor to fetch hotel booking information for the given user
+    DECLARE cur CURSOR FOR 
+        SELECT hotel_total_cost, hotel_tax, hotel_booking_fees 
+        FROM HotelBooking 
+        WHERE user_id = userID;
+
+    -- Declare continue handler for the cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    -- Open cursor
+    OPEN cur;
+
+    -- Loop through hotel bookings
+    bookingLoop: LOOP
+        FETCH cur INTO roomCost, tax, bookingFees;
+
+        -- Break loop if no more rows found
+        IF done THEN
+            LEAVE bookingLoop;
+        END IF;
+
+        -- Calculate total cost for each booking
+        SET totalCost = totalCost + roomCost + tax + bookingFees;
+    END LOOP;
+
+    -- Close cursor
+    CLOSE cur;
+
+    -- Display total cost
+    SELECT totalCost AS 'Total Hotel Booking Cost';
+END$$
+
+DELIMITER ;
