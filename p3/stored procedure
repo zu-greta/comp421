@@ -205,103 +205,117 @@ BEGIN
     CLOSE cur;
 END
 */
+--Write one stored procedure to perform operations on your project database. It should be nontrivial, illustrating a feature or features such as local variables, multiple SQL statements, loops etc. It should also involve a cursor. The stored procedure should use one or more parameters in a significant way.
 
 -- stored procedure that will Create a new relation and load it with values computed from one or more existing relations. using the created tables
--- create a new relation that will store the total information for a user's booking (adding together the flight, hotel, and car rental bookings)
--- Write one stored procedure to perform operations on your project database. It should be nontrivial, illustrating a feature or features such as local variables, multiple SQL statements, loops etc. It should also involve a cursor. The stored procedure should use one or more parameters in a significant way. We encourage you to be imaginative.
-CREATE PROCEDURE createBooking 
-(IN user_id INT, IN flight_reference_number INT, IN hotel_reference_number INT, IN car_rental_reference_number INT) 
+-- using CarRentalBooking and Car tables, create a stored procedure called createCarRentalRelation that will create a new table entry in CarRentalBooking table and load it with values computed from the CarRentalBooking table and Car table
+-- that will be inserted into the CarRentalBooking table. The new relation will contain the following columns: car_rental_reference_number, user_id, car_license_plate, pickup_location, return_location, pickup_date_time, return_date_time, car_rental_booking_date, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance
+-- the data will be loaded from the CarRentalBooking table and Car table and User table
+-- the stored procedure will take in the following parameters: user_id, pickup_date_time, return_date_time, budget, number of people, city_name, country
+-- the stored procedure will return the car_rental_reference_number, car_license_plate, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance
+-- it will do so by using a cursor to loop through the Car table to find a car that fits the budget and number of people and is in the city, country and then calculate the cost and tax and booking fees and total cost and insurance and then insert the values into the CarRentalBooking table
+-- generate a unique car_rental_reference_number
+
+CREATE PROCEDURE createCarRentalRelation (
+    IN p_user_id INT,
+    IN p_pickup_date_time DATETIME,
+    IN p_return_date_time DATETIME,
+    IN p_budget DECIMAL(5, 2),
+    IN p_num_people INT,
+    IN p_city_name VARCHAR(20),
+    IN p_country VARCHAR(15)
+)
 LANGUAGE SQL
 BEGIN
-    DECLARE flight_total_cost DECIMAL(9, 2);
-    DECLARE hotel_total_cost DECIMAL(10, 2);
+    DECLARE car_rental_ref_num INT;
+    DECLARE car_rental_plate VARCHAR(10);
+    DECLARE car_rental_cost DECIMAL(6, 2);
+    DECLARE car_rental_tax DECIMAL(5, 2);
+    DECLARE car_rental_booking_fees DECIMAL(4, 2);
     DECLARE car_rental_total_cost DECIMAL(7, 2);
-    DECLARE total_cost DECIMAL(12, 2);
+    DECLARE car_rental_insurance VARCHAR(30);
+    --DECLARE booked_days INT;
     DECLARE done INT DEFAULT 0;
-    DECLARE var1 INT;
-    DECLARE var2 INT;
-    DECLARE var3 INT;
-    DECLARE var4 INT;
-    DECLARE var5 INT;
-    DECLARE var6 INT;
-    DECLARE var7 INT;
-    DECLARE var8 INT;
-    DECLARE var9 INT;
-    DECLARE var10 INT;
-    DECLARE var11 INT;
-    DECLARE var12 INT;
-    DECLARE var13 INT;
-    DECLARE var14 INT;
-    DECLARE var15 INT;
-    DECLARE var16 INT;
-    DECLARE var17 INT;
-    DECLARE var18 INT;
-    DECLARE var19 INT;
-    DECLARE var20 INT;
-    DECLARE var21 INT;
-    DECLARE var22 INT;
-    DECLARE var23 INT;
-    DECLARE var24 INT;
-    DECLARE var25 INT;
-    DECLARE var26 INT;
-    DECLARE var27 INT;
-    DECLARE var28 INT;
-    DECLARE var29 INT;
-    DECLARE var30 INT;
-    DECLARE var31 INT;
-    DECLARE var32 INT;
-    DECLARE var33 INT;
-    DECLARE var34 INT;
-    DECLARE var35 INT;
-    DECLARE var36 INT;
-    DECLARE var37 INT;
-    DECLARE var38 INT;
-    DECLARE var39 INT;
-    DECLARE var40 INT;
-    DECLARE var41 INT;
-    DECLARE var42 INT;
-    DECLARE var43 INT;
-    DECLARE var44 INT;
-    DECLARE var45 INT;
-    DECLARE var46 INT;
-    DECLARE var47 INT;
-    DECLARE var48 INT;
-    DECLARE var49 INT;
-    DECLARE var50 INT;
-    DECLARE var51 INT;
-    DECLARE var52 INT;
-    DECLARE var53 INT;
-    DECLARE var54 INT;
-    DECLARE var55 INT;
-    DECLARE var56 INT;
-    DECLARE var57 INT;
-    DECLARE var58 INT;
-    DECLARE var59 INT;
-    DECLARE var60 INT;
-    DECLARE var61 INT;
-    DECLARE var62 INT;
-    DECLARE var63 INT;
-    DECLARE var64 INT;
-    DECLARE var65 INT;
-    DECLARE var66 INT;
-    DECLARE var67 INT;
-    DECLARE var68 INT;
-    DECLARE var69 INT;
-    DECLARE var70 INT;
-    DECLARE var71 INT;
-    DECLARE var72 INT;
-    DECLARE var73 INT;
-    DECLARE var74 INT;
-    DECLARE var75 INT;
-    DECLARE var76 INT;
-    DECLARE var77 INT;
-    DECLARE var78 INT;
-    DECLARE var79 INT;
-    DECLARE var80 INT;
-    DECLARE var81 INT;
-    DECLARE var82 INT;
-    DECLARE var83 INT;
-    DECLARE var84 INT;
-    DECLARE var85 INT;
-    DECLARE var86 INT;
-    DECLARE var87 INT;
+    
+    -- Declare cursor for selecting available cars
+    DECLARE cur CURSOR FOR
+        SELECT car_license_plate, car_daily_cost
+        FROM Car
+        WHERE city_name = p_city_name AND country = p_country
+        AND car_daily_cost <= p_budget --/ TIMESTAMPDIFF(DAY, p_pickup_date_time, p_return_date_time)
+        AND number_of_seats >= p_num_people
+        AND car_license_plate NOT IN (
+            SELECT car_license_plate
+            FROM CarRentalBooking
+            WHERE (pickup_date_time BETWEEN p_pickup_date_time AND p_return_date_time)
+            OR (return_date_time BETWEEN p_pickup_date_time AND p_return_date_time)
+            OR (p_pickup_date_time BETWEEN pickup_date_time AND return_date_time)
+            OR (p_return_date_time BETWEEN pickup_date_time AND return_date_time)
+        );
+
+    -- Declare handler for cursor not found
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    
+    -- Generate unique car_rental_reference_number
+    SET car_rental_ref_num = (SELECT MAX(car_rental_reference_number) + 1 FROM CarRentalBooking);
+
+     -- Calculate booked days
+    --SET booked_days = TIMESTAMPDIFF(DAYS, p_pickup_date_time, p_return_date_time);
+
+    -- Open cursor
+    OPEN cur;
+
+    -- Loop through available cars
+    carLoop: LOOP
+        FETCH cur INTO car_rental_plate, car_rental_cost;
+
+        -- Exit loop if no more rows
+        IF done THEN
+            LEAVE carLoop;
+        END IF;
+
+        -- Calculate tax and booking fees
+        --SET car_rental_cost = car_rental_cost * booked_days;
+        SET car_rental_tax = 0.1 * car_rental_cost;
+        SET car_rental_booking_fees = 0.05 * car_rental_cost;
+
+        -- Calculate total cost
+        SET car_rental_total_cost = car_rental_cost + car_rental_tax + car_rental_booking_fees;
+
+        -- Select insurance for the car
+        SET car_rental_insurance = (
+            SELECT company_policy
+            FROM Car
+            WHERE car_license_plate = car_rental_plate
+            AND city_name = p_city_name
+            AND country = p_country
+            FETCH FIRST ROW ONLY
+        );
+
+        -- Insert into CarRentalBooking table
+        INSERT INTO CarRentalBooking (car_rental_reference_number, user_id, car_license_plate, pickup_location, return_location, pickup_date_time, return_date_time, car_rental_booking_date, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance)
+        VALUES (car_rental_ref_num, p_user_id, car_rental_plate, p_city_name, p_country, p_pickup_date_time, p_return_date_time, CURRENT_DATE, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance);
+
+        -- Exit loop after inserting one entry
+        LEAVE carLoop;
+    END LOOP;
+
+    -- Close cursor
+    CLOSE cur;
+
+    -- Return car rental details
+   -- SELECT car_rental_ref_num, car_rental_plate, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance;
+END@
+
+
+
+CALL createCarRentalRelation(           
+    1, -- p_user_id
+    '2024-03-15 10:00:00', -- p_pickup_date_time
+    '2024-03-20 10:00:00', -- p_return_date_time
+    150.00, -- p_budget
+    4, -- p_num_people
+    'Montreal', -- p_city_name
+    'Canada' -- p_country
+);
+
