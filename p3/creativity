@@ -1,0 +1,15 @@
+CREATE OR REPLACE TRIGGER UpdateHotelBookingCost
+AFTER UPDATE OF room_cost, hotel_tax ON HotelBooking
+REFERENCING NEW AS NewRow
+FOR EACH ROW
+BEGIN ATOMIC
+    -- Calculate the new total cost
+    SET NewRow.hotel_total_cost = NewRow.room_cost + NewRow.hotel_tax + NewRow.hotel_booking_fees;
+END@
+/*
+This trigger will activate after an update operation on the room_cost or hotel_tax columns of the HotelBooking table. It calculates the new total cost by adding the room cost, hotel tax, and booking fees. Then, it updates the hotel_total_cost column in the HotelBooking table with the newly calculated total cost.
+
+The purpose of this trigger is to maintain data consistency and accuracy by automatically updating the total cost whenever relevant fields are modified, ensuring that users always see the correct total cost for their hotel bookings.
+*/
+
+-- this odesnt work rn
