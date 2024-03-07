@@ -53,7 +53,7 @@ class jj //find better name
                 System.out.println("    4. Delete data");
                 System.out.println("    5. Sub-menu");
                 System.out.println("    6. Quit");
-                System.out.print("\nPlease Enter Your Option: ");
+                System.out.print("Please Enter Your Option: ");
 
                 int option = Integer.parseInt(System.console().readLine());
 
