@@ -174,7 +174,7 @@ CREATE TABLE CarRentalBooking (
     car_rental_tax DECIMAL(5, 2) NOT NULL,
     car_rental_booking_fees DECIMAL(4, 2) NOT NULL,
     car_rental_total_cost DECIMAL(7, 2) NOT NULL,
-    insurance VARCHAR(30) NOT NULL, 
+    insurance VARCHAR(50) NOT NULL, 
     PRIMARY KEY (car_rental_reference_number), 
     FOREIGN KEY (car_license_plate) REFERENCES Car(car_license_plate),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)

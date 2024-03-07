@@ -223,7 +223,9 @@ CREATE PROCEDURE createCarRentalRelation (
     IN p_budget DECIMAL(5, 2),
     IN p_num_people INT,
     IN p_city_name VARCHAR(20),
-    IN p_country VARCHAR(15)
+    IN p_country VARCHAR(15),
+    IN p_pickup_location VARCHAR(50),
+    IN p_return_location VARCHAR(50)
 )
 LANGUAGE SQL
 BEGIN
@@ -233,8 +235,8 @@ BEGIN
     DECLARE car_rental_tax DECIMAL(5, 2);
     DECLARE car_rental_booking_fees DECIMAL(4, 2);
     DECLARE car_rental_total_cost DECIMAL(7, 2);
-    DECLARE car_rental_insurance VARCHAR(30);
-    --DECLARE booked_days INT;
+    DECLARE car_rental_insurance VARCHAR(50);
+    DECLARE booked_days INT;
     DECLARE done INT DEFAULT 0;
     
     -- Declare cursor for selecting available cars
@@ -261,6 +263,8 @@ BEGIN
 
      -- Calculate booked days
     --SET booked_days = TIMESTAMPDIFF(DAYS, p_pickup_date_time, p_return_date_time);
+    --SET booked_days = TIMESTAMPDIFF(16, p_return_date_time, p_pickup_date_time);
+    SET booked_days = DAYS(p_return_date_time) - DAYS(p_pickup_date_time);
 
     -- Open cursor
     OPEN cur;
@@ -275,7 +279,7 @@ BEGIN
         END IF;
 
         -- Calculate tax and booking fees
-        --SET car_rental_cost = car_rental_cost * booked_days;
+        SET car_rental_cost = car_rental_cost * booked_days;
         SET car_rental_tax = 0.1 * car_rental_cost;
         SET car_rental_booking_fees = 0.05 * car_rental_cost;
 
@@ -283,19 +287,26 @@ BEGIN
         SET car_rental_total_cost = car_rental_cost + car_rental_tax + car_rental_booking_fees;
 
         -- Select insurance for the car
-        SET car_rental_insurance = (
+        /*SET car_rental_insurance = (
             SELECT company_policy
             FROM Car
             WHERE car_license_plate = car_rental_plate
             AND city_name = p_city_name
             AND country = p_country
-            FETCH FIRST ROW ONLY
-        );
+            FETCH FIRST ROW ONLY 
+        );*/
+        SELECT company_policy
+        INTO car_rental_insurance
+        FROM Car
+        WHERE car_license_plate = car_rental_plate
+            AND city_name = p_city_name
+            AND country = p_country;
+        --FETCH FIRST ROW ONLY;
 
         -- Insert into CarRentalBooking table
         INSERT INTO CarRentalBooking (car_rental_reference_number, user_id, car_license_plate, pickup_location, return_location, pickup_date_time, return_date_time, car_rental_booking_date, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance)
-        VALUES (car_rental_ref_num, p_user_id, car_rental_plate, p_city_name, p_country, p_pickup_date_time, p_return_date_time, CURRENT_DATE, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance);
-
+        VALUES (car_rental_ref_num, p_user_id, car_rental_plate, p_pickup_location, p_return_location, p_pickup_date_time, p_return_date_time, CURRENT_DATE, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance);
+--CHECK PICKUP LOCATION
         -- Exit loop after inserting one entry
         LEAVE carLoop;
     END LOOP;
@@ -308,14 +319,20 @@ BEGIN
 END@
 
 
-
 CALL createCarRentalRelation(           
-    1, -- p_user_id
-    '2024-03-15 10:00:00', -- p_pickup_date_time
-    '2024-03-20 10:00:00', -- p_return_date_time
-    150.00, -- p_budget
-    4, -- p_num_people
-    'Montreal', -- p_city_name
-    'Canada' -- p_country
+    1,
+    '2024-03-15 10:00:00', 
+    '2024-03-20 10:00:00', 
+    150.00, 
+    4,
+    'Montreal', 
+    'Canada', 
+    'Pierre-Elliot Trudeau International Airport', 
+    'Pierre-Elliot Trudeau International Airport' 
 );
 
+/*
+A value cannot be assigned to a host variable in the SELECT, VALUES, 
+FETCH or assignment statement because the data types are not compatible.  
+SQLSTATE=42806
+*/
