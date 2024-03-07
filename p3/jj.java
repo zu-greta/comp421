@@ -47,22 +47,22 @@ class jj //find better name
             boolean run = true;
             while(run) {
                 System.out.println("\nBookings Main Menu: ");
-                System.out.println("    1. Find all booking total costs for a given user");
-                System.out.println("    2. Add a new booking for a user");
-                System.out.println("    3. Update data");
-                System.out.println("    4. Delete data");
-                System.out.println("    5. Sub-menu");
+                System.out.println("    1. Find all booking total costs for a given user"); //query
+                System.out.println("    2. Add a new booking for a user"); //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
+                System.out.println("    3. Update a user's profile information"); //query for user //update
+                System.out.println("    4. Flight Cancellation"); //query for flight bookings //query for next available flight //update bookings for all users //delete flight 
+                System.out.println("    5. Find all bookings for a given user (booking history)"); //query
                 System.out.println("    6. Quit");
-                System.out.print("Please Enter Your Option: ");
+                System.out.print("Please Enter Your Option Number: ");
 
                 int option = Integer.parseInt(System.console().readLine());
 
                 switch (option) {
                     case 1:
-                        queryData(statement);
+                        bookingTotalCosts(statement);
                         break;
                     case 2:
-                        insertData(statement);
+                        newBooking(statement);
                         break;
                     case 3:
                         updateData(statement);
@@ -71,7 +71,7 @@ class jj //find better name
                         deleteData(statement);
                         break;
                     case 5:
-                        subMenu(statement);
+                        userHistory(statement);
                         break;
                     case 6:
                         run = false;
@@ -202,45 +202,17 @@ class jj //find better name
     
 
 // Method to query data
-static void queryData(Statement statement) throws SQLException {
+static void bookingTotalCosts(Statement statement) throws SQLException {
     // Taking user input for user id
     System.out.print("Enter the user id: ");
     int userId = Integer.parseInt(System.console().readLine());
 
-    String query = "SELECT " +
-            "COALESCE(flight.user_id, hotel.user_id, car.user_id) AS user_id, " +
-            "flight.flight_total_cost AS flight_total_cost, " +
-            "hotel.hotel_total_cost AS hotel_total_cost, " +
-            "car.car_rental_total_cost AS car_rental_total_cost " +
-            "FROM " +
-            "(SELECT " +
-            "user_id, " +
-            "SUM(flight_total_cost) AS flight_total_cost " +
-            "FROM " +
-            "FlightBooking " +
-            "WHERE " +
-            "user_id = " + userId + " " +
-            "GROUP BY " +
-            "user_id) AS flight " +
-            "FULL OUTER JOIN " +
-            "(SELECT " +
-            "user_id, " +
-            "SUM(hotel_total_cost) AS hotel_total_cost " +
-            "FROM " +
-            "HotelBooking " +
-            "WHERE " +
-            "user_id = " + userId + " " +
-            "GROUP BY " +
-            "user_id) AS hotel ON flight.user_id = hotel.user_id " +
-            "FULL OUTER JOIN " +
-            "(SELECT " +
-            "user_id, " +
-            "SUM(car_rental_total_cost) AS car_rental_total_cost " +
-            "FROM " +
-            "CarRentalBooking " +
-            "WHERE " +
-            "user_id = " + userId + " " +
-            "GROUP BY " +
+    String query = "SELECT COALESCE(flight.user_id, hotel.user_id, car.user_id) AS user_id, flight.flight_total_cost AS flight_total_cost, " +
+            "hotel.hotel_total_cost AS hotel_total_cost, car.car_rental_total_cost AS car_rental_total_cost FROM (SELECT user_id, " +
+            "SUM(flight_total_cost) AS flight_total_cost FROM FlightBooking WHERE user_id = " + userId + " GROUP BY user_id) AS flight " +
+            "FULL OUTER JOIN (SELECT user_id, SUM(hotel_total_cost) AS hotel_total_cost FROM HotelBooking WHERE user_id = " + userId + 
+            " GROUP BY user_id) AS hotel ON flight.user_id = hotel.user_id FULL OUTER JOIN (SELECT user_id, " +
+            "SUM(car_rental_total_cost) AS car_rental_total_cost FROM CarRentalBooking WHERE user_id = " + userId + " GROUP BY " +
             "user_id) AS car ON flight.user_id = car.user_id";
 
     ResultSet resultSet = statement.executeQuery(query);
@@ -261,31 +233,159 @@ static void queryData(Statement statement) throws SQLException {
 }
 
 // Method to insert data
-static void insertData(Statement statement) throws SQLException {
-    // Execute insert statement
-    statement.executeUpdate("INSERT INTO TableName (column1, column2) VALUES (value1, value2)");
-    System.out.println("Data inserted successfully");
+//choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
+static void newBooking(Statement statement) throws SQLException {
+    boolean flag = true;
+    while (flag) {
+        // Taking user input for user id
+        System.out.print("Enter the user id: ");
+        int userId = Integer.parseInt(System.console().readLine());
+        //check if user exists
+        ResultSet resultSet = statement.executeQuery("SELECT user_id FROM User WHERE user_id = " + userId);
+        if (!resultSet.next()) {
+            System.out.println("User does not exist. Please try again.");
+            resultSet.close();
+            continue;
+        }
+        else {
+            flag = false;
+            resultSet.close(); 
+        }
+    }    
+    while(!flag) {
+        // Taking user input for booking type
+        System.out.println("Choose the booking type: ");
+        System.out.println("    1. Flight");
+        System.out.println("    2. Hotel");
+        System.out.println("    3. Car Rental");
+        System.out.print("Please Enter Your Option Number: ");
+        int bookingType = Integer.parseInt(System.console().readLine());
+
+        switch (bookingType) {
+            case 1:
+                // Flight booking
+                // Get flight info from user: departure date time, airline, fare class, departure city and country, arrival city and country, departure date
+                // Query for flight options using the given info
+                // Display flight options as a sub menu to choose from
+                // Get user input for flight option
+                // Book flight by getting user input for booking info (user ID, passenger names) 
+                // and other info from the flight selected (flight number, departure date time, flight cost given fare class), 
+                // and calculate the costs (flight total cost, plane ticket cost, plane ticket surcharge, plane ticket tax, flight booking fees, flight booking date),
+                // and generate a flight reference number, 
+                // and insert into FlightBooking table
+                
+                flag = true;
+                break;
+            case 2:
+                // Hotel booking
+                // Get hotel info from user: check-in date, check-out date, city, country, number of rooms, number of guests
+                // Query for hotel options using the given info
+                // Display hotel options as a sub menu to choose from
+                // Get user input for hotel option
+                // Display room options as a sub menu to choose from
+                // Get user input for room option
+                // Book hotel room by getting user input for booking info (user ID, checkin date, chekout date)
+                // and info from room selected (room number),
+                // and info from hotel selected (brand affiliation, hotel address)
+                // calculate costs (hotel toatal cost, hotel tax, hotel booking fees, hotel booking date),
+                // generate a hotel reference number,
+                // and insert into HotelBooking table
+
+                flag = true;
+                break;
+            case 3:
+                // Car rental booking
+                // Get car rental info from user: pickup date time, return date time, pickup location, return location
+                // Query for car rental options using the given info
+                // Display car rental options as a sub menu to choose from
+                // Get user input for car rental option
+                // Book car rental by getting user input for booking info (user ID, pickup date time, return date time, pickup location, return location)
+                // and info from car rental selected (car ar license plate, insurance)
+                // calculate costs (car rental total cost, car rental tax, car rental booking fees, car rental booking date),
+                // generate a car rental reference number,
+                // and insert into CarRentalBooking table
+
+                flag = true;
+                break;
+            default:
+                System.out.println("Invalid option. Please try again.");
+                break;
+        }
+    }
+    // print booking success message
+    System.out.println("Booking successful");
+    // display booking info
+    // Query for booking info
+    ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE condition");
+    // Process and display query results
+    while (resultSet.next()) {
+        // Process each row of the result set
+        // Example: String data = resultSet.getString("columnName");
+    }
+    resultSet.close();
 }
 
 // Method to update data
+//query for user //update
 static void updateData(Statement statement) throws SQLException {
+    // Taking user input for user id
+    System.out.print("Enter the user id: ");
+    int userId = Integer.parseInt(System.console().readLine());
+    // Query for user
+    ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE user_id = " + userId);
+    // Process and display query results
+    while (resultSet.next()) {
+        // Process each row of the result set
+        // Example: String data = resultSet.getString("columnName");
+    }
+    //ask for new info
+    // Update user info
     // Execute update statement
-    statement.executeUpdate("UPDATE TableName SET column1 = newValue WHERE condition");
+    statement.executeUpdate("UPDATE TableName SET columnName = value WHERE condition");
     System.out.println("Data updated successfully");
+    resultSet.close();
 }
 
-// Method to delete data
+// Method to delete data using multiple sql statements
+//get flight reference number for cancelled flight //query for flight bookings with that flight //query for next available flight closest date to same location //update bookings for all users who had the cancelled flight to the next available one //delete cancelled flight
 static void deleteData(Statement statement) throws SQLException {
+    // Taking user input for flight reference number
+    System.out.print("Enter the flight reference number: ");
+    int flightReferenceNumber = Integer.parseInt(System.console().readLine());
+    // Query for flight bookings with that flight
+    ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE flight_reference_number = " + flightReferenceNumber);
+    // Process and display query results
+    while (resultSet.next()) {
+        // Process each row of the result set
+        // Example: String data = resultSet.getString("columnName");
+    }
+    resultSet.close();
+    // Query for next available flight closest date to same location
+    resultSet = statement.executeQuery("SELECT * FROM TableName WHERE condition");
+    // Process and display query results
+    while (resultSet.next()) {
+        // Process each row of the result set
+        // Example: String data = resultSet.getString("columnName");
+    }
+    resultSet.close();
+    // Update bookings for all users who had the cancelled flight to the next available one
+    // Execute update statement
+    statement.executeUpdate("UPDATE TableName SET columnName = value WHERE condition");
+    System.out.println("Data updated successfully");
+    // Delete cancelled flight
     // Execute delete statement
     statement.executeUpdate("DELETE FROM TableName WHERE condition");
     System.out.println("Data deleted successfully");
 }
 
-// Method for sub-menu
-static void subMenu(Statement statement) throws SQLException {
-    // Example of a sub-menu querying data
-    ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName");
-    // Process and display sub-menu query results
+// Method for querying Find all bookings for a given user (booking history)
+static void userHistory(Statement statement) throws SQLException {
+    // Taking user input for user id
+    System.out.print("Enter the user id: ");
+    int userId = Integer.parseInt(System.console().readLine());
+    // Query for user bookings
+    ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE user_id = " + userId);
+    // Process and display query results
     while (resultSet.next()) {
         // Process each row of the result set
         // Example: String data = resultSet.getString("columnName");
