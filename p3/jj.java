@@ -248,81 +248,81 @@ static void newBooking(Statement statement) throws SQLException {
             continue;
         }
         else {
+            boolean flag2 = false;
+            while(!flag2) {
+                // Taking user input for booking type
+                System.out.println("Choose the booking type: ");
+                System.out.println("    1. Flight");
+                System.out.println("    2. Hotel");
+                System.out.println("    3. Car Rental");
+                System.out.print("Please Enter Your Option Number: ");
+                int bookingType = Integer.parseInt(System.console().readLine());
+        
+                switch (bookingType) {
+                    case 1:
+                        // Flight booking
+                        // Get flight info from user: departure date time, airline, fare class, departure city and country, arrival city and country, departure date
+                        // Query for flight options using the given info
+                        // Display flight options as a sub menu to choose from
+                        // Get user input for flight option
+                        // Book flight by getting user input for booking info (user ID, passenger names) 
+                        // and other info from the flight selected (flight number, departure date time, flight cost given fare class), 
+                        // and calculate the costs (flight total cost, plane ticket cost, plane ticket surcharge, plane ticket tax, flight booking fees, flight booking date),
+                        // and generate a flight reference number, 
+                        // and insert into FlightBooking table
+                        
+                        flag2 = true;
+                        break;
+                    case 2:
+                        // Hotel booking
+                        // Get hotel info from user: check-in date, check-out date, city, country, number of rooms, number of guests
+                        // Query for hotel options using the given info
+                        // Display hotel options as a sub menu to choose from
+                        // Get user input for hotel option
+                        // Display room options as a sub menu to choose from
+                        // Get user input for room option
+                        // Book hotel room by getting user input for booking info (user ID, checkin date, chekout date)
+                        // and info from room selected (room number),
+                        // and info from hotel selected (brand affiliation, hotel address)
+                        // calculate costs (hotel toatal cost, hotel tax, hotel booking fees, hotel booking date),
+                        // generate a hotel reference number,
+                        // and insert into HotelBooking table
+        
+                        flag2 = true;
+                        break;
+                    case 3:
+                        // Car rental booking
+                        // Get car rental info from user: pickup date time, return date time, pickup location, return location
+                        // Query for car rental options using the given info
+                        // Display car rental options as a sub menu to choose from
+                        // Get user input for car rental option
+                        // Book car rental by getting user input for booking info (user ID, pickup date time, return date time, pickup location, return location)
+                        // and info from car rental selected (car ar license plate, insurance)
+                        // calculate costs (car rental total cost, car rental tax, car rental booking fees, car rental booking date),
+                        // generate a car rental reference number,
+                        // and insert into CarRentalBooking table
+        
+                        flag2 = true;
+                        break;
+                    default:
+                        System.out.println("Invalid option. Please try again.");
+                        break;
+                }
+            }
+            // Query for booking info
+            resultSet = statement.executeQuery("SELECT * FROM TableName WHERE condition");
+            // Process and display query results
+            while (resultSet.next()) {
+                // Process each row of the result set
+                // Example: String data = resultSet.getString("columnName");
+            }
+            // Print booking success message
+            System.out.println("Booking successful");
+
             flag = false;
             resultSet.close(); 
         }
     }    
-    while(!flag) {
-        // Taking user input for booking type
-        System.out.println("Choose the booking type: ");
-        System.out.println("    1. Flight");
-        System.out.println("    2. Hotel");
-        System.out.println("    3. Car Rental");
-        System.out.print("Please Enter Your Option Number: ");
-        int bookingType = Integer.parseInt(System.console().readLine());
-
-        switch (bookingType) {
-            case 1:
-                // Flight booking
-                // Get flight info from user: departure date time, airline, fare class, departure city and country, arrival city and country, departure date
-                // Query for flight options using the given info
-                // Display flight options as a sub menu to choose from
-                // Get user input for flight option
-                // Book flight by getting user input for booking info (user ID, passenger names) 
-                // and other info from the flight selected (flight number, departure date time, flight cost given fare class), 
-                // and calculate the costs (flight total cost, plane ticket cost, plane ticket surcharge, plane ticket tax, flight booking fees, flight booking date),
-                // and generate a flight reference number, 
-                // and insert into FlightBooking table
-                
-                flag = true;
-                break;
-            case 2:
-                // Hotel booking
-                // Get hotel info from user: check-in date, check-out date, city, country, number of rooms, number of guests
-                // Query for hotel options using the given info
-                // Display hotel options as a sub menu to choose from
-                // Get user input for hotel option
-                // Display room options as a sub menu to choose from
-                // Get user input for room option
-                // Book hotel room by getting user input for booking info (user ID, checkin date, chekout date)
-                // and info from room selected (room number),
-                // and info from hotel selected (brand affiliation, hotel address)
-                // calculate costs (hotel toatal cost, hotel tax, hotel booking fees, hotel booking date),
-                // generate a hotel reference number,
-                // and insert into HotelBooking table
-
-                flag = true;
-                break;
-            case 3:
-                // Car rental booking
-                // Get car rental info from user: pickup date time, return date time, pickup location, return location
-                // Query for car rental options using the given info
-                // Display car rental options as a sub menu to choose from
-                // Get user input for car rental option
-                // Book car rental by getting user input for booking info (user ID, pickup date time, return date time, pickup location, return location)
-                // and info from car rental selected (car ar license plate, insurance)
-                // calculate costs (car rental total cost, car rental tax, car rental booking fees, car rental booking date),
-                // generate a car rental reference number,
-                // and insert into CarRentalBooking table
-
-                flag = true;
-                break;
-            default:
-                System.out.println("Invalid option. Please try again.");
-                break;
-        }
-    }
-    // print booking success message
-    System.out.println("Booking successful");
-    // display booking info
-    // Query for booking info
-    ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE condition");
-    // Process and display query results
-    while (resultSet.next()) {
-        // Process each row of the result set
-        // Example: String data = resultSet.getString("columnName");
-    }
-    resultSet.close();
 }
 
 // Method to update data
@@ -380,16 +380,28 @@ static void deleteData(Statement statement) throws SQLException {
 
 // Method for querying Find all bookings for a given user (booking history)
 static void userHistory(Statement statement) throws SQLException {
-    // Taking user input for user id
-    System.out.print("Enter the user id: ");
-    int userId = Integer.parseInt(System.console().readLine());
-    // Query for user bookings
-    ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE user_id = " + userId);
-    // Process and display query results
-    while (resultSet.next()) {
-        // Process each row of the result set
-        // Example: String data = resultSet.getString("columnName");
+    boolean flag = true;
+    while (flag) {
+        // Taking user input for user id
+        System.out.print("Enter the user id: ");
+        int userId = Integer.parseInt(System.console().readLine());
+        //check if user exists
+        ResultSet resultSet = statement.executeQuery("SELECT user_id FROM User WHERE user_id = " + userId);
+        if (!resultSet.next()) {
+            System.out.println("User does not exist. Please try again.");
+            resultSet.close();
+            continue;
+        }
+        else {
+            // Query for user bookings. in each bookings table, get all bookings for the user and display
+            // Process and display query results
+            while (resultSet.next()) {
+                // Process each row of the result set
+                // Example: String data = resultSet.getString("columnName");
+            }
+            flag = false;
+            resultSet.close(); 
+        }
     }
-    resultSet.close();
 }
 }
