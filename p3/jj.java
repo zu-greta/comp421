@@ -408,57 +408,125 @@ static void updateData(Statement statement) throws SQLException {
                 switch (option) {
                     case 1:
                         // Update language
-                        // get user input for new language
-                        System.out.print("Choose the new language: ");
-                        System.out.println("    1. English");
-                        System.out.println("    2. French");
-                        System.out.println("Please Enter Your Option Number: ");
-                        int languageOption = Integer.parseInt(System.console().readLine());
-                        String language = "";
-                        if (languageOption == 1) {
-                            // set language to English
-                            language = "en";
-                            statement.executeUpdate("UPDATE Registered SET language = 'en' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
+                        String language="";
+                        while (true) {
+                            // get user input for new language
+                            System.out.print("Choose the new language: ");
+                            System.out.println("    1. English");
+                            System.out.println("    2. French");
+                            System.out.println("Please Enter Your Option Number: ");
+                            int languageOption = Integer.parseInt(System.console().readLine());
+                            if (languageOption == 1) {
+                                // set language to English
+                                language = "en";
+                                break;
+                            }
+                            else if (languageOption == 2) {
+                                // set language to French
+                                language = "fr";
+                                break;
+                            }
+                            else {
+                                System.out.println("Invalid option. Please try again.");
+                                continue;
+                            }
                         }
-                        else if (languageOption == 2) {
-                            // set language to French
-                            statement.executeUpdate("UPDATE Registered SET language = 'fr' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                            language = "fr";
-                        }
-                        else {
-                            System.out.println("Invalid option. Please try again.");
-                            break;
-                        }
+                        statement.executeUpdate("UPDATE Registered SET language = '" + language + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
                         System.out.println("Data updated successfully");
                         break;
                     case 2:
                         // Update name
+                        String newname="";
+                        while (true) {
+                            // get user input for new name
+                            System.out.print("Enter the new name: ");
+                            newname = System.console().readLine();
+                            if (newname.length() > 25) {
+                                System.out.println("Name is too long. Please try again.");
+                                continue;
+                            }
+                            else {
+                                break;
+                            }
+                        }
                         // Execute update statement
-                        statement.executeUpdate("UPDATE Users SET name = value WHERE condition");
+                        statement.executeUpdate("UPDATE Users SET name = '" + newname + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
                         System.out.println("Data updated successfully");
                         break;
                     case 3:
                         // Update email
+                        String newEmail = "";
+                        while (true) {
+                            // get user input for new email
+                            System.out.print("Enter the new email: ");
+                            newEmail = System.console().readLine();
+                            if (newEmail.length() > 40) {
+                                System.out.println("Email is too long. Please try again.");
+                                continue;
+                            }
+                            else {
+                                break;
+                            }
+                        }
                         // Execute update statement
-                        statement.executeUpdate("UPDATE Users SET email = value WHERE condition");
+                        statement.executeUpdate("UPDATE Users SET email = '" + newEmail + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
                         System.out.println("Data updated successfully");
                         break;
                     case 4:
                         // Update phone number
+                        String newPhoneNumber = "";
+                        while (true) {
+                            // get user input for new phone number
+                            System.out.print("Enter the new phone number: ");
+                            newPhoneNumber = System.console().readLine();
+                            if (newPhoneNumber.length() > 22) {
+                                System.out.println("Phone number is too long. Please try again.");
+                                continue;
+                            }
+                            else {
+                                break;
+                            }
+                        }
                         // Execute update statement
-                        statement.executeUpdate("UPDATE Users SET phone_number = value WHERE condition");
+                        statement.executeUpdate("UPDATE Users SET phone_number = '" + newPhoneNumber + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
                         System.out.println("Data updated successfully");
                         break;
                     case 5:
                         // Update address
+                        String newAddress = "";
+                        while (true) {
+                            // get user input for new address
+                            System.out.print("Enter the new address: ");
+                            newAddress = System.console().readLine();
+                            if (newAddress.length() > 50) {
+                                System.out.println("Address is too long. Please try again.");
+                                continue;
+                            }
+                            else {
+                                break;
+                            }
+                        }
                         // Execute update statement
-                        statement.executeUpdate("UPDATE Users SET address = value WHERE condition");
+                        statement.executeUpdate("UPDATE Users SET address = '" + newAddress + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
                         System.out.println("Data updated successfully");
                         break;
                     case 6:
                         // Update credit card information
+                        System.out.print("Enter the new credit card information: ");
+                        String newCreditCardInfo = "";
+                        while (true) {
+                            // get user input for new credit card information
+                            newCreditCardInfo = System.console().readLine();
+                            if (newCreditCardInfo.length() > 28) {
+                                System.out.println("Credit card information is too long. Please try again.");
+                                continue;
+                            }
+                            else {
+                                break;
+                            }
+                        }
                         // Execute update statement
-                        statement.executeUpdate("UPDATE Users SET credit_card_information = value WHERE condition");
+                        statement.executeUpdate("UPDATE Users SET credit_card_information = '" + newCreditCardInfo + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')" );
                         System.out.println("Data updated successfully");
                         break;
                     case 7:
