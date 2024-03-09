@@ -204,10 +204,21 @@ class jj //find better name
 // Method to query data
 static void bookingTotalCosts(Statement statement) throws SQLException {
     // Taking user input for user id
-    System.out.print("Enter the user id: ");
-    int userId = Integer.parseInt(System.console().readLine());
-
-    String query = "SELECT COALESCE(flight.user_id, hotel.user_id, car.user_id) AS user_id, flight.flight_total_cost AS flight_total_cost, " +
+    boolean flag = true;
+    while (flag) {
+        // Taking user input for user id
+        System.out.print("Enter the user id: ");
+        int userId = Integer.parseInt(System.console().readLine());
+        //check if user exists
+        ResultSet resultSet = statement.executeQuery("SELECT user_id FROM User WHERE user_id = " + userId);
+        if (!resultSet.next()) {
+            System.out.println("User does not exist. Please try again.");
+            resultSet.close();
+            continue;
+        }
+        else {
+            flag = false;
+            String query = "SELECT COALESCE(flight.user_id, hotel.user_id, car.user_id) AS user_id, flight.flight_total_cost AS flight_total_cost, " +
             "hotel.hotel_total_cost AS hotel_total_cost, car.car_rental_total_cost AS car_rental_total_cost FROM (SELECT user_id, " +
             "SUM(flight_total_cost) AS flight_total_cost FROM FlightBooking WHERE user_id = " + userId + " GROUP BY user_id) AS flight " +
             "FULL OUTER JOIN (SELECT user_id, SUM(hotel_total_cost) AS hotel_total_cost FROM HotelBooking WHERE user_id = " + userId + 
@@ -215,21 +226,24 @@ static void bookingTotalCosts(Statement statement) throws SQLException {
             "SUM(car_rental_total_cost) AS car_rental_total_cost FROM CarRentalBooking WHERE user_id = " + userId + " GROUP BY " +
             "user_id) AS car ON flight.user_id = car.user_id";
 
-    ResultSet resultSet = statement.executeQuery(query);
+            ResultSet resultSet2 = statement.executeQuery(query);
 
-    System.out.println("+------------+-------------------+------------------+-----------------------+");
-    System.out.println("| User ID    | Flight Total Cost | Hotel Total Cost | Car Rental Total Cost |");
-    System.out.println("+------------+-------------------+------------------+-----------------------+");
-    // Process and display query results
-    while (resultSet.next()) {
-        int resultUserId = resultSet.getInt("user_id");
-        double flightTotalCost = resultSet.getDouble("flight_total_cost");
-        double hotelTotalCost = resultSet.getDouble("hotel_total_cost");
-        double carRentalTotalCost = resultSet.getDouble("car_rental_total_cost");
-        System.out.printf("| %-10d | %-17.2f | %-16.2f | %-21.2f |\n", resultUserId, flightTotalCost, hotelTotalCost, carRentalTotalCost);
-    }
-    System.out.println("+------------+-------------------+------------------+-----------------------+");
-    resultSet.close();
+            System.out.println("+------------+-------------------+------------------+-----------------------+");
+            System.out.println("| User ID    | Flight Total Cost | Hotel Total Cost | Car Rental Total Cost |");
+            System.out.println("+------------+-------------------+------------------+-----------------------+");
+            // Process and display query results
+            while (resultSet.next()) {
+                int resultUserId = resultSet.getInt("user_id");
+                double flightTotalCost = resultSet.getDouble("flight_total_cost");
+                double hotelTotalCost = resultSet.getDouble("hotel_total_cost");
+                double carRentalTotalCost = resultSet.getDouble("car_rental_total_cost");
+                System.out.printf("| %-10d | %-17.2f | %-16.2f | %-21.2f |\n", resultUserId, flightTotalCost, hotelTotalCost, carRentalTotalCost);
+            }
+            System.out.println("+------------+-------------------+------------------+-----------------------+");
+            resultSet.close(); 
+            resultSet2.close();
+        }
+    }   
 }
 
 // Method to insert data
