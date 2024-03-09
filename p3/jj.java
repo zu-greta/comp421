@@ -49,7 +49,7 @@ class jj //find better name
                 System.out.println("\nBookings Main Menu: ");
                 System.out.println("    1. Find all booking total costs for a given user"); //query
                 System.out.println("    2. Add a new booking for a user"); //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
-                System.out.println("    3. Update a user's profile information"); //query for user //update
+                System.out.println("    3. Update a registered user's profile information"); //query for user //update
                 System.out.println("    4. Flight Cancellation"); //query for flight bookings //query for next available flight //update bookings for all users //delete flight 
                 System.out.println("    5. Find all bookings for a given user (booking history)"); //query
                 System.out.println("    6. Quit");
@@ -341,22 +341,140 @@ static void newBooking(Statement statement) throws SQLException {
 // Method to update data
 //query for user //update
 static void updateData(Statement statement) throws SQLException {
-    // Taking user input for user id
-    System.out.print("Enter the user id: ");
-    int userId = Integer.parseInt(System.console().readLine());
-    // Query for user
-    ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE user_id = " + userId);
-    // Process and display query results
-    while (resultSet.next()) {
-        // Process each row of the result set
-        // Example: String data = resultSet.getString("columnName");
+    boolean flag = true;
+    while (flag) {
+        // Taking user input for username and password
+        System.out.print("Enter the username: ");
+        String userName = System.console().readLine();
+        //check if user exists
+        ResultSet resultSet = statement.executeQuery("SELECT username FROM Registered WHERE username = '" + userName + "'");
+        if (!resultSet.next()) {
+            System.out.println("User does not exist or is not registered. Please try again.");        
+            continue;
+        }
+        else {
+            //check password
+            boolean goodpass = false;
+            for (int i = 0; i < 3; i++) {
+                System.out.print("Enter the password: ");
+                String password = System.console().readLine();
+                ResultSet resultSet2 = statement.executeQuery("SELECT password FROM Registered WHERE username = '" + userName + "' AND password = '" + password + "'");
+                if (!resultSet2.next()) {
+                    System.out.println("Password is incorrect. Please try again.");
+                    resultSet2.close();
+                    continue;
+                }
+                else {
+                    resultSet2.close();
+                    goodpass = true;
+                    break;
+                }
+            }
+            if (!goodpass) {
+                System.out.println("You have entered the wrong password too many times. Please try again later.");
+                return;
+            }
+            // Query for user -> resultSet
+            ResultSet resultSet3 = statement.executeQuery("SELECT u.user_id, u.name, u.email, u.phone_number, u.address, u.credit_card_information, r.language FROM Users u JOIN Registered r ON u.user_id = r.user_id WHERE u.user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')" );
+            // Process and display user info
+            System.out.println("User info: ");
+            System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
+            System.out.println("| User ID    | Language | Name                | Email                          | Phone Number         | Address                                           | Credit Card Information              |");
+            System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
+            while (resultSet3.next()) {
+                int userID = resultSet3.getInt("user_id");
+                String language = resultSet3.getString("language");
+                String name = resultSet3.getString("name");
+                String email = resultSet3.getString("email");
+                String phoneNumber = resultSet3.getString("phone_number");
+                String address = resultSet3.getString("address");
+                String creditCardInfo = resultSet3.getString("credit_card_information");
+                System.out.printf("| %-10d | %-8s | %-19s | %-30s | %-20s | %-49s | %-36s |\n", userID, language, name, email, phoneNumber, address, creditCardInfo);
+            }
+            System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
+            boolean flag3 = true;
+            while(flag3) {
+                // Ask user for which info to update
+                System.out.println("Which information would you like to update?");
+                System.out.println("    1. Language");
+                System.out.println("    2. Name");
+                System.out.println("    3. Email");
+                System.out.println("    4. Phone Number");
+                System.out.println("    5. Address");
+                System.out.println("    6. Credit Card Information");
+                System.out.println("    7. Quit");
+                System.out.print("Please Enter Your Option Number: ");
+                int option = Integer.parseInt(System.console().readLine());
+                switch (option) {
+                    case 1:
+                        // Update language
+                        // get user input for new language
+                        System.out.print("Choose the new language: ");
+                        System.out.println("    1. English");
+                        System.out.println("    2. French");
+                        System.out.println("Please Enter Your Option Number: ");
+                        int languageOption = Integer.parseInt(System.console().readLine());
+                        String language = "";
+                        if (languageOption == 1) {
+                            // set language to English
+                            language = "en";
+                        }
+                        else if (languageOption == 2) {
+                            // set language to French
+                            language = "fr";
+                        }
+                        else {
+                            System.out.println("Invalid option. Please try again.");
+                            break;
+                        }
+                        // Execute update statement
+                        statement.executeUpdate("UPDATE Registered SET language = value WHERE condition");
+                        System.out.println("Data updated successfully");
+                        break;
+                    case 2:
+                        // Update name
+                        // Execute update statement
+                        statement.executeUpdate("UPDATE Users SET name = value WHERE condition");
+                        System.out.println("Data updated successfully");
+                        break;
+                    case 3:
+                        // Update email
+                        // Execute update statement
+                        statement.executeUpdate("UPDATE Users SET email = value WHERE condition");
+                        System.out.println("Data updated successfully");
+                        break;
+                    case 4:
+                        // Update phone number
+                        // Execute update statement
+                        statement.executeUpdate("UPDATE Users SET phone_number = value WHERE condition");
+                        System.out.println("Data updated successfully");
+                        break;
+                    case 5:
+                        // Update address
+                        // Execute update statement
+                        statement.executeUpdate("UPDATE Users SET address = value WHERE condition");
+                        System.out.println("Data updated successfully");
+                        break;
+                    case 6:
+                        // Update credit card information
+                        // Execute update statement
+                        statement.executeUpdate("UPDATE Users SET credit_card_information = value WHERE condition");
+                        System.out.println("Data updated successfully");
+                        break;
+                    case 7:
+                        flag3 = false;
+                        break;
+                    default:
+                        System.out.println("Invalid option. Please try again.");
+                        break;
+                }
+            }
+            System.out.println("Updates Done");
+            flag = false;
+            resultSet3.close();
+        }
+        resultSet.close();
     }
-    //ask for new info
-    // Update user info
-    // Execute update statement
-    statement.executeUpdate("UPDATE TableName SET columnName = value WHERE condition");
-    System.out.println("Data updated successfully");
-    resultSet.close();
 }
 
 // Method to delete data using multiple sql statements
