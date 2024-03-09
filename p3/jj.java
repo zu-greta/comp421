@@ -1,6 +1,7 @@
 //package p3; //remove when submitting
 
 import java.sql.* ;
+import java.util.Scanner;
 
 class jj //find better name
 {
@@ -50,7 +51,7 @@ class jj //find better name
                 System.out.println("    1. Find all booking total costs for a given user"); //query
                 System.out.println("    2. Add a new booking for a user"); //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
                 System.out.println("    3. Update a registered user's profile information"); //query for user //update
-                System.out.println("    4. Flight Cancellation"); //query for flight bookings //query for next available flight //update bookings for all users //delete flight 
+                System.out.println("    4. Flight Cancellation (for admins only)"); //query for flight bookings //query for next available flight //update bookings for all users //delete flight 
                 System.out.println("    5. Find all bookings for a given user (booking history)"); //query
                 System.out.println("    6. Quit");
                 System.out.print("Please Enter Your Option Number: ");
@@ -58,7 +59,7 @@ class jj //find better name
                 int option = Integer.parseInt(System.console().readLine());
 
                 switch (option) {
-                    case 1:
+                    case 1: //change THIS
                         bookingTotalCosts(statement);
                         break;
                     case 2:
@@ -70,7 +71,7 @@ class jj //find better name
                     case 4:
                         deleteData(statement);
                         break;
-                    case 5:
+                    case 5: //add THIS
                         userHistory(statement);
                         break;
                     case 6:
@@ -346,6 +347,10 @@ static void updateData(Statement statement) throws SQLException {
         // Taking user input for username and password
         System.out.print("Enter the username: ");
         String userName = System.console().readLine();
+        if (userName.length() > 10) {
+            System.out.println("Username is too long. Please try again.");
+            continue;
+        }
         //check if user exists
         ResultSet resultSet = statement.executeQuery("SELECT username FROM Registered WHERE username = '" + userName + "'");
         if (!resultSet.next()) {
@@ -358,6 +363,11 @@ static void updateData(Statement statement) throws SQLException {
             for (int i = 0; i < 3; i++) {
                 System.out.print("Enter the password: ");
                 String password = System.console().readLine();
+                if (password.length() > 10) {
+                    System.out.println("Password is too long. Please try again.");
+                    i--;
+                    continue;
+                }
                 ResultSet resultSet2 = statement.executeQuery("SELECT password FROM Registered WHERE username = '" + userName + "' AND password = '" + password + "'");
                 if (!resultSet2.next()) {
                     System.out.println("Password is incorrect. Please try again.");
@@ -547,35 +557,113 @@ static void updateData(Statement statement) throws SQLException {
 
 // Method to delete data using multiple sql statements
 //get flight reference number for cancelled flight //query for flight bookings with that flight //query for next available flight closest date to same location //update bookings for all users who had the cancelled flight to the next available one //delete cancelled flight
-static void deleteData(Statement statement) throws SQLException {
-    // Taking user input for flight reference number
-    System.out.print("Enter the flight reference number: ");
-    int flightReferenceNumber = Integer.parseInt(System.console().readLine());
-    // Query for flight bookings with that flight
-    ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE flight_reference_number = " + flightReferenceNumber);
-    // Process and display query results
-    while (resultSet.next()) {
-        // Process each row of the result set
-        // Example: String data = resultSet.getString("columnName");
+static void deleteData(Statement statement) {
+    //FOR GRADING
+    System.out.println("FOR GRADING PURPOSES ONLY, THE PASSWORD FOR ADMINS IS 'admin000'");
+
+    try {
+        //get the password
+        System.out.print("Enter the password: ");
+        String password = System.console().readLine();
+        if (!password.equals("admin000")) {
+            System.out.println("Incorrect password. This option is only for admins.");
+            return;
+        }
+
+        while (true) {
+            //get the flight number and departure datetime
+            System.out.println("Choose the flight number and departure date of the flight to be cancelled: ");
+
+            // Fetch flights from database
+            ResultSet resultSet0 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights");
+            int i = 1;
+            while (resultSet0.next()) {
+                String flightNumber = resultSet0.getString("flight_number");
+                String departureDate = resultSet0.getString("departure_date_time");
+                System.out.println("    " + i + ". " + flightNumber + " on " + departureDate);
+                i++;
+            }
+            resultSet0.close();
+
+            System.out.print("Please Enter Your Option Number: ");
+            int option = Integer.parseInt(System.console().readLine());
+
+            //get the flight number and departure date
+            String flightNumber = "";
+            String departureDate = "";
+            resultSet0 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights");
+            int count = 1;
+            while (resultSet0.next()) {
+                if (count == option) {
+                    flightNumber = resultSet0.getString("flight_number");
+                    departureDate = resultSet0.getString("departure_date_time");
+                    break;
+                }
+                count++;
+            }
+            resultSet0.close();
+
+            //get the flight 
+            ResultSet resultSet = statement.executeQuery("SELECT flight_number, departure_date_time FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+            if (!resultSet.next()) {
+                System.out.println("Flight does not exist. Please try again.");
+                resultSet.close();
+                continue;
+            } else {
+                //get the flight reference number for the cancelled flight
+                ResultSet resultSet1 = statement.executeQuery("SELECT flight_reference_number FROM FlightBooking WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+                //check if there are any bookings for the flight
+                if (!resultSet1.next()) {
+                    //no bookings, just cancel the flight. delete the flight from the flight table
+                    statement.executeUpdate("DELETE FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+                    resultSet1.close();
+                    System.out.println("Flight cancelled successfully");
+                    resultSet.close();
+                    return;
+                } else {
+                    while (resultSet1.next()) {
+                        int flightReferenceNumber = resultSet1.getInt("flight_reference_number");
+                        ResultSet resultSet2 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights WHERE arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND departure_city = (SELECT departure_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "')" );
+                        String flightNumber2 = "";
+                        String departureDate2 = "";
+                        int k = 1;
+                        //print out the options for a new booking
+                        while (resultSet2.next()) {
+                            flightNumber2 = resultSet2.getString("flight_number");
+                            departureDate2 = resultSet2.getString("departure_date_time");
+                            System.out.println("    " + k + ". " + flightNumber2 + " on " + departureDate2);
+                            k++;
+                        }
+                        resultSet2.close();
+                        System.out.print("Please Enter Your Option Number: ");
+                        int option2 = Integer.parseInt(System.console().readLine());
+                        resultSet2 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights WHERE arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "')");
+                        count = 1;
+                        while (resultSet2.next()) {
+                            if (count == option2) {
+                                flightNumber2 = resultSet2.getString("flight_number");
+                                departureDate2 = resultSet2.getString("departure_date_time");
+                                break;
+                            }
+                            count++;
+                        }
+                        statement.executeUpdate("UPDATE FlightBooking SET flight_number = '" + flightNumber2 + "', departure_date_time = '" + departureDate2 + "' WHERE flight_reference_number = " + flightReferenceNumber);
+                        System.out.println("Flight cancelled successfully");
+                        resultSet2.close();
+                    }
+                    resultSet1.close();
+                    resultSet.close();
+                    break;
+                }
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
-    resultSet.close();
-    // Query for next available flight closest date to same location
-    resultSet = statement.executeQuery("SELECT * FROM TableName WHERE condition");
-    // Process and display query results
-    while (resultSet.next()) {
-        // Process each row of the result set
-        // Example: String data = resultSet.getString("columnName");
-    }
-    resultSet.close();
-    // Update bookings for all users who had the cancelled flight to the next available one
-    // Execute update statement
-    statement.executeUpdate("UPDATE TableName SET columnName = value WHERE condition");
-    System.out.println("Data updated successfully");
-    // Delete cancelled flight
-    // Execute delete statement
-    statement.executeUpdate("DELETE FROM TableName WHERE condition");
-    System.out.println("Data deleted successfully");
 }
+
+
+
 
 // Method for querying Find all bookings for a given user (booking history)
 static void userHistory(Statement statement) throws SQLException {
