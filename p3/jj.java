@@ -25,8 +25,8 @@ class jj //find better name
         String url = "jdbc:db2://winter2024-comp421.cs.mcgill.ca:50000/comp421";
 
         //REMEMBER to remove your user id and password before submitting your code!!
-        String your_userid = null;
-        String your_password = null;
+        String your_userid = "cs421g118";
+        String your_password = "PassPass_118";
         //AS AN ALTERNATIVE, you can just set your password in the shell environment in the Unix (as shown below) and read it from there.
         //$  export SOCSPASSWD=yoursocspasswd 
         if(your_userid == null && (your_userid = System.getenv("SOCSUSER")) == null)
@@ -210,10 +210,9 @@ static void bookingTotalCosts(Statement statement) throws SQLException {
         System.out.print("Enter the user id: ");
         int userId = Integer.parseInt(System.console().readLine());
         //check if user exists
-        ResultSet resultSet = statement.executeQuery("SELECT user_id FROM User WHERE user_id = " + userId);
+        ResultSet resultSet = statement.executeQuery("SELECT user_id FROM Users WHERE user_id = " + userId);
         if (!resultSet.next()) {
             System.out.println("User does not exist. Please try again.");
-            resultSet.close();
             continue;
         }
         else {
@@ -232,17 +231,17 @@ static void bookingTotalCosts(Statement statement) throws SQLException {
             System.out.println("| User ID    | Flight Total Cost | Hotel Total Cost | Car Rental Total Cost |");
             System.out.println("+------------+-------------------+------------------+-----------------------+");
             // Process and display query results
-            while (resultSet.next()) {
-                int resultUserId = resultSet.getInt("user_id");
-                double flightTotalCost = resultSet.getDouble("flight_total_cost");
-                double hotelTotalCost = resultSet.getDouble("hotel_total_cost");
-                double carRentalTotalCost = resultSet.getDouble("car_rental_total_cost");
+            while (resultSet2.next()) {
+                int resultUserId = resultSet2.getInt("user_id");
+                double flightTotalCost = resultSet2.getDouble("flight_total_cost");
+                double hotelTotalCost = resultSet2.getDouble("hotel_total_cost");
+                double carRentalTotalCost = resultSet2.getDouble("car_rental_total_cost");
                 System.out.printf("| %-10d | %-17.2f | %-16.2f | %-21.2f |\n", resultUserId, flightTotalCost, hotelTotalCost, carRentalTotalCost);
             }
             System.out.println("+------------+-------------------+------------------+-----------------------+");
-            resultSet.close(); 
             resultSet2.close();
         }
+        resultSet.close();
     }   
 }
 
