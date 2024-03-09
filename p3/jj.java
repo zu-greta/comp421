@@ -418,17 +418,17 @@ static void updateData(Statement statement) throws SQLException {
                         if (languageOption == 1) {
                             // set language to English
                             language = "en";
+                            statement.executeUpdate("UPDATE Registered SET language = 'en' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
                         }
                         else if (languageOption == 2) {
                             // set language to French
+                            statement.executeUpdate("UPDATE Registered SET language = 'fr' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
                             language = "fr";
                         }
                         else {
                             System.out.println("Invalid option. Please try again.");
                             break;
                         }
-                        // Execute update statement
-                        statement.executeUpdate("UPDATE Registered SET language = value WHERE condition");
                         System.out.println("Data updated successfully");
                         break;
                     case 2:
