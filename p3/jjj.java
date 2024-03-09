@@ -354,14 +354,14 @@ class jjj //find better name
         while (flag) {
             // Taking user input for user id
             System.out.print("Enter username: ");
-            String username = Integer.parseInt(System.console().readLine());
+            String username = System.console().readLine();
             //Check if username is within the length limit
             if (username.length() > 10) {
                 System.out.println("Invalid username. Please try again.");
                 continue;
             } 
 
-            ResultSet resultSet = statement.executeQuery("SELECT user_id FROM Users WHERE username = " + "'" + username + "'");
+            ResultSet resultSet = statement.executeQuery("SELECT user_id FROM Registered WHERE username = " + "'" + username + "'");
             if (!resultSet.next()) {
                 System.out.println("User does not exist. Please try again.");
                 continue;
@@ -369,13 +369,13 @@ class jjj //find better name
             else {
                 //Validate password
                 System.out.print("Enter password: ");
-                String password = Integer.parseInt(System.console().readLine());
+                String password = System.console().readLine();
                 //Check if password is within the length limit
                 if (password.length() > 10) {
                     System.out.println("Invalid password. Please try again.");
                     continue;
                 }
-                resultSet = statement.executeQuery("SELECT user_id FROM Users WHERE username = " + "'" + username + "'" + " AND password = " + "'" + password + "'");
+                resultSet = statement.executeQuery("SELECT user_id FROM Registered WHERE username = " + "'" + username + "'" + " AND password = " + "'" + password + "'");
                 if (!resultSet.next()) {
                     System.out.println("Invalid password. Please try again.");
                     continue;
@@ -406,7 +406,7 @@ class jjj //find better name
             
 
 
-
+            /* 
             //check if user exists
             ResultSet resultSet = statement.executeQuery("SELECT user_id FROM Users WHERE user_id = " + userId);
             if (!resultSet.next()) {
@@ -424,7 +424,7 @@ class jjj //find better name
                 }
                 flag = false;
                 resultSet.close(); 
-            }
+            }*/
         }
     }
 
