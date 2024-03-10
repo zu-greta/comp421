@@ -52,7 +52,7 @@ class jjj //find better name
                 System.out.println("    2. Add a new booking for a user"); //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
                 System.out.println("    3. Update a user's profile information"); //query for user //update
                 System.out.println("    4. Flight Cancellation"); //query for flight bookings //query for next available flight //update bookings for all users //delete flight 
-                System.out.println("    5. Find all bookings for a given user (booking history)"); //query
+                System.out.println("    5. Find all bookings for a given user (booking history)"); //Change the displayed fields through subqueries later
                 System.out.println("    6. Quit");
                 System.out.print("Please Enter Your Option Number: ");
 
@@ -60,7 +60,8 @@ class jjj //find better name
 
                 switch (option) {
                     case 1:
-                        bookingTotalCosts(statement);
+                        registerUser(statement);
+                        //bookingTotalCosts(statement);
                         break;
                     case 2:
                         newBooking(statement);
@@ -94,113 +95,173 @@ class jjj //find better name
         }
         statement.close ( ) ;
         con.close ( ) ;
-/* 
-        // Creating a table
-        try
-        {
-          String createSQL = "CREATE TABLE " + tableName + " (id INTEGER, name VARCHAR (25)) ";
-          System.out.println (createSQL ) ;
-          statement.executeUpdate (createSQL ) ;
-          System.out.println ("DONE");
-        }
-        catch (SQLException e)
-        {
-          sqlCode = e.getErrorCode(); // Get SQLCODE
-          sqlState = e.getSQLState(); // Get SQLSTATE
-                
-          // Your code to handle errors comes here;
-          // something more meaningful than a print would be good
-          System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-          System.out.println(e);
-         }
-
-        // Inserting Data into the table
-        try
-        {
-          String insertSQL = "INSERT INTO " + tableName + " VALUES ( 1 , \'Vicki\' ) " ;
-          System.out.println ( insertSQL ) ;
-          statement.executeUpdate ( insertSQL ) ;
-          System.out.println ( "DONE" ) ;
-
-          insertSQL = "INSERT INTO " + tableName + " VALUES ( 2 , \'Vera\' ) " ;
-          System.out.println ( insertSQL ) ;
-          statement.executeUpdate ( insertSQL ) ;
-          System.out.println ( "DONE" ) ;
-          insertSQL = "INSERT INTO " + tableName + " VALUES ( 3 , \'Franca\' ) " ;
-          System.out.println ( insertSQL ) ;
-          statement.executeUpdate ( insertSQL ) ;
-          System.out.println ( "DONE" ) ;
-
-        }
-        catch (SQLException e)
-        {
-          sqlCode = e.getErrorCode(); // Get SQLCODE
-          sqlState = e.getSQLState(); // Get SQLSTATE
-                
-          // Your code to handle errors comes here;
-          // something more meaningful than a print would be good
-          System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-          System.out.println(e);
-        }
-
-        // Querying a table
-        try
-        {
-          String querySQL = "SELECT id, name from " + tableName + " WHERE NAME = \'Vicki\'";
-          System.out.println (querySQL) ;
-          java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
-
-          while ( rs.next ( ) )
-          {
-            int id = rs.getInt ( 1 ) ;
-            String name = rs.getString (2);
-            System.out.println ("id:  " + id);
-            System.out.println ("name:  " + name);
-          }
-         System.out.println ("DONE");
-        }
-        catch (SQLException e)
-        {
-          sqlCode = e.getErrorCode(); // Get SQLCODE
-          sqlState = e.getSQLState(); // Get SQLSTATE
-                
-          // Your code to handle errors comes here;
-          // something more meaningful than a print would be good
-          System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-          System.out.println(e);
-        }
-
-      //Updating a table
-      try
-      {
-        String updateSQL = "UPDATE " + tableName + " SET NAME = \'Mimi\' WHERE id = 3";
-        System.out.println(updateSQL);
-        statement.executeUpdate(updateSQL);
-        System.out.println("DONE");
-
-        // Dropping a table
-        String dropSQL = "DROP TABLE " + tableName;
-        System.out.println ( dropSQL ) ;
-        statement.executeUpdate ( dropSQL ) ;
-        System.out.println ("DONE");
-      }
-      catch (SQLException e)
-      {
-        sqlCode = e.getErrorCode(); // Get SQLCODE
-        sqlState = e.getSQLState(); // Get SQLSTATE
-                
-        // Your code to handle errors comes here;
-        // something more meaningful than a print would be good
-        System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-        System.out.println(e);
-      }
-
-      // Finally but importantly close the statement and connection
-      statement.close ( ) ;
-      con.close ( ) ;
-      */
     }
     
+    static void registerUser(Statement statement) throws SQLException {
+        boolean flag = true;
+        boolean flag2 = true;
+        boolean flag3 = true;
+        boolean flag4 = true;
+        boolean flag5 = true;
+        boolean flag6 = true;
+        boolean flag7 = true;
+        boolean flag8 = true;
+        String name = null;
+        String email = null;
+        String phoneNum = null;
+        String address = null;
+        String creditInfo = null;
+        String username = null;
+        String password = null;
+        String selectedLanguage = null;
+
+        while (flag4){
+            // Taking user input for name
+            System.out.print("Enter your name: ");
+            name = System.console().readLine();
+            //Check if name is within the length limit
+            if (name.length() > 25 || name.length() < 1){
+                System.out.println("Invalid name length. Please try again.");
+                continue;
+            } 
+            else {
+                flag4 = false;
+            }
+        }
+
+        while (flag5) {
+            // Taking user input for email
+            System.out.print("Enter your email: ");
+            email = System.console().readLine();
+            //Check if email is within the length limit
+            if (email.length() > 40 || email.length() < 1){
+                System.out.println("Invalid email length. Please try again.");
+                continue;
+            } 
+            else {
+                flag5 = false;
+            }
+        }
+
+        while (flag6) {
+            // Taking user input for phone number
+            System.out.print("Enter your phone number: ");
+            phoneNum = System.console().readLine();
+            //Check if phone number is within the length limit
+            if (phoneNum.length() > 22 || phoneNum.length() < 1){
+                System.out.println("Invalid phone number length. Please try again.");
+                continue;
+            } 
+            else {
+                flag6 = false;
+            }
+        }
+
+        while (flag7) {
+            // Taking user input for address
+            System.out.print("Enter your address: ");
+            address = System.console().readLine();
+            //Check if address is within the length limit
+            if (address.length() > 50 || address.length() < 1){
+                System.out.println("Invalid address length. Please try again.");
+                continue;
+            } 
+            else {
+                flag7 = false;
+            }
+        }
+
+        while (flag8) {
+            // Taking user input for credit card info
+            System.out.print("Enter your credit card info: ");
+            creditInfo = System.console().readLine();
+            //Check if credit card info is within the length limit
+            if (creditInfo.length() > 28 || creditInfo.length() < 1){
+                System.out.println("Invalid credit card info length. Please try again.");
+                continue;
+            } 
+            else {
+                flag8 = false;
+            }
+        }
+    
+        while (flag) {
+            // Taking user input for username
+            System.out.print("Choose a username: ");
+            username = System.console().readLine();
+            //Check if username is within the length limit
+            if (username.length() > 10 || username.length() < 1){
+                System.out.println("Invalid username length. Please try again.");
+                continue;
+            } 
+            //check if username already exists
+            ResultSet resultSet = statement.executeQuery("SELECT username FROM Registered WHERE username = " + "'" + username + "'");
+            if (resultSet.next()) {
+                System.out.println("Username already exists. Please try again.");
+                resultSet.close();
+                continue;
+            }
+            else {
+                
+                while (flag2) {
+                    System.out.print("Choose a password: ");
+                    password = System.console().readLine();
+                    //Check if password is within the length limit
+                    if (password.length() > 10 || password.length() < 1) {
+                        System.out.println("Invalid password length. Please try again.");
+                        continue;
+                    }
+                    System.out.print("Re-enter password: ");
+                    String password2 = System.console().readLine();
+                    if (!password.equals(password2)) {
+                        System.out.println("Passwords do not match. Please try again.");
+                        continue;
+                    }
+                    else {
+                        flag2 = false;
+                    }
+                }    
+                
+                while (flag3) {
+                    
+                    //Choose language
+                    System.out.println("Choose a language: ");
+                    System.out.println("    1. English");
+                    System.out.println("    2. French");
+                    System.out.print("Please Enter Your Option Number: ");
+                    int language = Integer.parseInt(System.console().readLine());
+
+                    
+                    switch (language) {
+                        case 1:
+                            selectedLanguage = "en";
+                            flag3 = false;
+                            break;
+                    
+                        case 2:
+                            selectedLanguage = "fr";
+                            flag3 = false;
+                            break;
+                        default:
+                            System.out.println("Invalid option. Please try again.");
+                            break;
+                    }
+                }
+                flag = false;
+                resultSet.close();
+            }
+        }
+
+        //From the Users table, retrie
+
+
+        // Insert user info into Users and Registered tables
+
+
+
+
+
+    }
 
     // Method to insert data
     //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
@@ -368,40 +429,73 @@ class jjj //find better name
             }
             else {
                 //Validate password
-                System.out.print("Enter password: ");
-                String password = System.console().readLine();
-                //Check if password is within the length limit
-                if (password.length() > 10) {
-                    System.out.println("Invalid password. Please try again.");
-                    continue;
+                boolean valid = false;
+                for (int i = 0; i < 3; i++) {
+                    System.out.print("Enter password: ");
+                    String password = System.console().readLine();
+                    //Check if password is within the length limit
+                    if (password.length() > 10) {
+                        System.out.println("Invalid password. Please try again.");
+                        i--;
+                        continue;
+                    }
+                    resultSet = statement.executeQuery("SELECT user_id FROM Registered WHERE username = " + "'" + username + "'" + " AND password = " + "'" + password + "'");
+                    if (!resultSet.next()) {
+                        System.out.println("Invalid password. Please try again.");
+                        continue;
+                    } else {
+                        valid = true;
+                        break;
+                    }
                 }
-                resultSet = statement.executeQuery("SELECT user_id FROM Registered WHERE username = " + "'" + username + "'" + " AND password = " + "'" + password + "'");
-                if (!resultSet.next()) {
-                    System.out.println("Invalid password. Please try again.");
-                    continue;
+                if (!valid) {
+                    System.out.println("You have entered the wrong password too many times. Please try again later.");
+                    return;
                 }
-                else {
-                    //Get the user id
-                    flag = false;
-                    int userId = resultSet.getInt("user_id");
-                    System.out.println("User ID: " + userId);
-
-                    //String query = "SELECT * FROM FlightBooking WHERE user_id = " + userId + " UNION SELECT * FROM HotelBooking WHERE user_id = " + userId + " UNION SELECT * FROM CarRentalBooking WHERE user_id = " + userId;
-
-                }
-
-                /* 
+                
                 // Query for user bookings. in each bookings table, get all bookings for the user and display
                 // Process and display query results
                 flag = false;
-                //String query = 
+                //get user id
+                int userId = resultSet.getInt("user_id");
+                System.out.println("User ID: " + userId); //REMOVE THIS LATER 
+                String query = "SELECT * FROM FlightBooking WHERE user_id = " + userId + " UNION SELECT * FROM HotelBooking WHERE user_id = " + userId + " UNION SELECT * FROM CarRentalBooking WHERE user_id = " + userId;
+                resultSet = statement.executeQuery(query);
+                // Display flight_ref_number, flight_number, hotel_ref_number, brand_affiliation, car_rental_ref_number, car_license_plate
+                // Split into 3 tables for each booking type
+                System.out.println("+---------------------------------+-------------------+");
+                System.out.println("| Flight Booking Reference Number | Flight Number     |");    
+                System.out.println("+---------------------------------+-------------------+");
                 while (resultSet.next()) {
-                    // Process each row of the result set
-                    // Example: String data = resultSet.getString("columnName");
-                }*/
-                
-                resultSet.close(); 
+                    int flightRefNumber = resultSet.getInt("flight_ref_number");
+                    int flightNumber = resultSet.getInt("flight_number");
+                    System.out.printf("| %-31d | %-17d |\n", flightRefNumber, flightNumber);
+                }
+                System.out.println("+---------------------------------+-------------------+");
+                // Display hotel_ref_number, brand_affiliation
+                System.out.println("+--------------------------+-------------------+");
+                System.out.println("| Hotel Booking Reference  | Brand Affiliation |");
+                System.out.println("+--------------------------+-------------------+");
+                while (resultSet.next()) {
+                    int hotelRefNumber = resultSet.getInt("hotel_ref_number");
+                    String brandAffiliation = resultSet.getString("brand_affiliation");
+                    System.out.printf("| %-24d | %-17s |\n", hotelRefNumber, brandAffiliation);
+                }
+                System.out.println("+--------------------------+-------------------+");
+                // Display car_rental_ref_number, car_license_plate
+                System.out.println("+--------------------------+-------------------+");
+                System.out.println("| Car Rental Reference     | Car License Plate  |");
+                System.out.println("+--------------------------+-------------------+");
+                while (resultSet.next()) {
+                    int carRentalRefNumber = resultSet.getInt("car_rental_ref_number");
+                    String carLicensePlate = resultSet.getString("car_license_plate");
+                    System.out.printf("| %-24d | %-17s |\n", carRentalRefNumber, carLicensePlate);
+                }
+                System.out.println("+--------------------------+-------------------+");
+                resultSet.close();
             }
+        }
+    }
 
             
 
@@ -425,8 +519,10 @@ class jjj //find better name
                 flag = false;
                 resultSet.close(); 
             }*/
-        }
-    }
+        
+    
+    
+    
 
      // Method to query data
      static void bookingTotalCosts(Statement statement) throws SQLException {
