@@ -575,92 +575,109 @@ static void deleteData(Statement statement) {
             System.out.println("Choose the flight number and departure date of the flight to be cancelled: ");
 
             // Fetch flights from database
-            ResultSet resultSet0 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights");
-            int i = 1;
-            while (resultSet0.next()) {
-                String flightNumber = resultSet0.getString("flight_number");
-                String departureDate = resultSet0.getString("departure_date_time");
-                System.out.println("    " + i + ". " + flightNumber + " on " + departureDate);
-                i++;
+            try (ResultSet resultSet0 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights")) {
+                int i = 1;
+                System.out.println("Available Flights: ");
+                while (resultSet0.next()) {
+                    String flightNumber = resultSet0.getString("flight_number");
+                    String departureDate = resultSet0.getString("departure_date");
+                    System.out.println("    " + i + ". " + flightNumber + " on " + departureDate);
+                    i++;
+                }
             }
-            resultSet0.close();
 
-            System.out.print("Please Enter Your Option Number: ");
+            System.out.print("Please Enter Your Option Number for the Flight to Cancel: ");
             int option = Integer.parseInt(System.console().readLine());
 
             //get the flight number and departure date
             String flightNumber = "";
             String departureDate = "";
-            resultSet0 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights");
-            int count = 1;
-            while (resultSet0.next()) {
-                if (count == option) {
-                    flightNumber = resultSet0.getString("flight_number");
-                    departureDate = resultSet0.getString("departure_date_time");
-                    break;
+            try (ResultSet resultSet0 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights")) {
+                int count = 1;
+                while (resultSet0.next()) {
+                    if (count == option) {
+                        flightNumber = resultSet0.getString("flight_number");
+                        departureDate = resultSet0.getString("departure_date");
+                        break;
+                    }
+                    count++;
                 }
-                count++;
             }
-            resultSet0.close();
-
-            //get the flight 
-            ResultSet resultSet = statement.executeQuery("SELECT flight_number, departure_date_time FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
-            if (!resultSet.next()) {
-                System.out.println("Flight does not exist. Please try again.");
-                resultSet.close();
-                continue;
-            } else {
-                //get the flight reference number for the cancelled flight
-                ResultSet resultSet1 = statement.executeQuery("SELECT flight_reference_number FROM FlightBooking WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
-                //check if there are any bookings for the flight
-                if (!resultSet1.next()) {
-                    //no bookings, just cancel the flight. delete the flight from the flight table
-                    statement.executeUpdate("DELETE FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
-                    resultSet1.close();
-                    System.out.println("Flight cancelled successfully");
+            // Check if the flight exists
+            try (ResultSet resultSet = statement.executeQuery("SELECT flight_number FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'")) {
+                if (!resultSet.next()) {
+                    System.out.println("Flight does not exist. Please try again.");
                     resultSet.close();
-                    return;
-                } else {
-                    while (resultSet1.next()) {
-                        int flightReferenceNumber = resultSet1.getInt("flight_reference_number");
-                        ResultSet resultSet2 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights WHERE arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND departure_city = (SELECT departure_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "')" );
-                        String flightNumber2 = "";
-                        String departureDate2 = "";
-                        int k = 1;
-                        //print out the options for a new booking
-                        while (resultSet2.next()) {
+                    continue;
+                }
+            }
+            // Check if there are any bookings for the flight
+            ResultSet resultSet1 = statement.executeQuery("SELECT flight_reference_number FROM FlightBooking WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+            if (!resultSet1.next()) {
+                // No bookings, just cancel the flight. Delete the flight from the flight table
+                statement.executeUpdate("DELETE FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+                System.out.println("Flight cancelled successfully");
+                resultSet1.close();
+                return;
+            }
+            else {
+                // Print available flights for rebooking
+                System.out.println("Available Flights for Rebooking: ");
+                try (ResultSet resultSet2 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights WHERE departure_city = (SELECT departure_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND DATE(departure_date_time) != '" + departureDate + "'")) {
+                    int k = 1;
+                    while (resultSet2.next()) {
+                        String flightNumber2 = resultSet2.getString("flight_number");
+                        String departureDate2 = resultSet2.getString("departure_date");
+                        System.out.println("    " + k + ". " + flightNumber2 + " on " + departureDate2);
+                        k++;
+                    }
+                }
+
+                // Prompt for rebooking option
+                System.out.print("Please Enter Your Option Number for the Flight you would like to Book: ");
+                int option2 = Integer.parseInt(System.console().readLine());
+                String flightNumber2 = "";
+                String departureDate2 = "";
+                // Get the flight number and departure date for rebooking
+                try (ResultSet resultSet2 = statement.executeQuery("SELECT flight_number, departure_date_time FROM Flights WHERE departure_city = (SELECT departure_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND DATE(departure_date_time) != '" + departureDate + "'")) {                        int count = 1;
+                    flightNumber2 = "";
+                    departureDate2 = "";
+                    while (resultSet2.next()) {
+                        if (count == option2) {
                             flightNumber2 = resultSet2.getString("flight_number");
                             departureDate2 = resultSet2.getString("departure_date_time");
-                            System.out.println("    " + k + ". " + flightNumber2 + " on " + departureDate2);
-                            k++;
+                            break;
                         }
-                        resultSet2.close();
-                        System.out.print("Please Enter Your Option Number: ");
-                        int option2 = Integer.parseInt(System.console().readLine());
-                        resultSet2 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights WHERE arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "')");
-                        count = 1;
-                        while (resultSet2.next()) {
-                            if (count == option2) {
-                                flightNumber2 = resultSet2.getString("flight_number");
-                                departureDate2 = resultSet2.getString("departure_date_time");
-                                break;
-                            }
-                            count++;
-                        }
-                        statement.executeUpdate("UPDATE FlightBooking SET flight_number = '" + flightNumber2 + "', departure_date_time = '" + departureDate2 + "' WHERE flight_reference_number = " + flightReferenceNumber);
-                        System.out.println("Flight cancelled successfully");
-                        resultSet2.close();
+                        count++;
                     }
-                    resultSet1.close();
-                    resultSet.close();
-                    break;
                 }
-            }
+                // Get the flight reference number for the cancelled flight
+                // Update the flight booking and delete the cancelled flight
+                // for each user who had the cancelled flight
+                resultSet1 = statement.executeQuery("SELECT flight_reference_number FROM FlightBooking WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+                while (resultSet1.next()) {
+                    int flightReferenceNumber = resultSet1.getInt("flight_reference_number");
+                    ResultSet resultSet3 = statement.executeQuery("SELECT user_id FROM FlightBooking WHERE flight_reference_number = " + flightReferenceNumber);
+                    if (resultSet3.next()) {
+                        int userId = resultSet3.getInt("user_id");
+                        // Update the flight booking for the current user
+                        statement.executeUpdate("UPDATE FlightBooking SET flight_number = '" + flightNumber2 + "', departure_date_time = '" + departureDate2 + "' WHERE flight_reference_number = " + flightReferenceNumber + " AND user_id = " + userId);
+                        System.out.println("Flight booking updated for user " + userId);
+                    }
+                    resultSet3.close();
+                }
+                // Delete the cancelled flight
+                statement.executeUpdate("DELETE FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+                System.out.println("Flight cancelled successfully");
+                resultSet1.close();
+                return;
+            }            
         }
     } catch (SQLException e) {
         e.printStackTrace();
     }
 }
+
 
 
 
