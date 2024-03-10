@@ -1367,6 +1367,7 @@ size, free_wifi, view, minibar, private_bathroom, smoking) VALUES
         535.00, 'Business', 'A1', 400.00, 50.00, 60.00,
         25.00, '2024-04-02')
     ;
+    --INSERT INTO FlightBooking (flight_reference_number, user_id, passenger_names, flight_number, departure_date_time,flight_total_cost, fare_class, seat_numbers, plane_ticket_cost, plane_ticket_surcharge, plane_ticket_tax, flight_booking_fees, flight_booking_date) VALUES (6, 4, 'Jane Smith', 'AC005', '2024-05-04 13:05:00', 535.00, 'Business', 'A1', 400.00, 50.00, 60.00, 25.00, '2024-04-02');
     INSERT INTO HotelBooking (hotel_reference_number, user_id, room_number, brand_affiliation, hotel_address,
     checkin_date, checkout_date, hotel_total_cost, room_cost, hotel_tax, hotel_booking_fees, hotel_booking_date) VALUES
         (1, 1, 201, 'APA Hotel', '10-2 Nihonbashi-Kakigara-cho, Chuo-ku',
