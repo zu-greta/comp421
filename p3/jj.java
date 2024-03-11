@@ -204,451 +204,382 @@ class jj //find better name
     }
     
 
-// Method to query data
-static void bookingTotalCosts(Statement statement) throws SQLException {
-    // Taking user input for user id
-    boolean flag = true;
-    while (flag) {
+    // Method to query data
+    static void bookingTotalCosts(Statement statement) throws SQLException {
         // Taking user input for user id
-        System.out.print("Enter the user id: ");
-        int userId = Integer.parseInt(System.console().readLine());
-        //check if user exists
-        ResultSet resultSet = statement.executeQuery("SELECT user_id FROM Users WHERE user_id = " + userId);
-        if (!resultSet.next()) {
-            System.out.println("User does not exist. Please try again.");
-            continue;
-        }
-        else {
-            flag = false;
-            String query = "SELECT COALESCE(flight.user_id, hotel.user_id, car.user_id) AS user_id, flight.flight_total_cost AS flight_total_cost, " +
-            "hotel.hotel_total_cost AS hotel_total_cost, car.car_rental_total_cost AS car_rental_total_cost FROM (SELECT user_id, " +
-            "SUM(flight_total_cost) AS flight_total_cost FROM FlightBooking WHERE user_id = " + userId + " GROUP BY user_id) AS flight " +
-            "FULL OUTER JOIN (SELECT user_id, SUM(hotel_total_cost) AS hotel_total_cost FROM HotelBooking WHERE user_id = " + userId + 
-            " GROUP BY user_id) AS hotel ON flight.user_id = hotel.user_id FULL OUTER JOIN (SELECT user_id, " +
-            "SUM(car_rental_total_cost) AS car_rental_total_cost FROM CarRentalBooking WHERE user_id = " + userId + " GROUP BY " +
-            "user_id) AS car ON flight.user_id = car.user_id";
-
-            ResultSet resultSet2 = statement.executeQuery(query);
-
-            System.out.println("+------------+-------------------+------------------+-----------------------+");
-            System.out.println("| User ID    | Flight Total Cost | Hotel Total Cost | Car Rental Total Cost |");
-            System.out.println("+------------+-------------------+------------------+-----------------------+");
-            // Process and display query results
-            while (resultSet2.next()) {
-                int resultUserId = resultSet2.getInt("user_id");
-                double flightTotalCost = resultSet2.getDouble("flight_total_cost");
-                double hotelTotalCost = resultSet2.getDouble("hotel_total_cost");
-                double carRentalTotalCost = resultSet2.getDouble("car_rental_total_cost");
-                System.out.printf("| %-10d | %-17.2f | %-16.2f | %-21.2f |\n", resultUserId, flightTotalCost, hotelTotalCost, carRentalTotalCost);
-            }
-            System.out.println("+------------+-------------------+------------------+-----------------------+");
-            resultSet2.close();
-        }
-        resultSet.close();
-    }   
-}
-
-// Method to insert data
-//choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
-static void newBooking(Statement statement) throws SQLException {
-    boolean flag = true;
-    while (flag) {
-        // Taking user input for user id
-        System.out.print("Enter the user id: ");
-        int userId = Integer.parseInt(System.console().readLine());
-        //check if user exists
-        ResultSet resultSet = statement.executeQuery("SELECT user_id FROM User WHERE user_id = " + userId);
-        if (!resultSet.next()) {
-            System.out.println("User does not exist. Please try again.");
-            resultSet.close();
-            continue;
-        }
-        else {
-            boolean flag2 = false;
-            while(!flag2) {
-                // Taking user input for booking type
-                System.out.println("Choose the booking type: ");
-                System.out.println("    1. Flight");
-                System.out.println("    2. Hotel");
-                System.out.println("    3. Car Rental");
-                System.out.print("Please Enter Your Option Number: ");
-                int bookingType = Integer.parseInt(System.console().readLine());
-        
-                switch (bookingType) {
-                    case 1:
-                        // Flight booking
-                        // Get flight info from user: departure date time, airline, fare class, departure city and country, arrival city and country, departure date
-                        // Query for flight options using the given info
-                        // Display flight options as a sub menu to choose from
-                        // Get user input for flight option
-                        // Book flight by getting user input for booking info (user ID, passenger names) 
-                        // and other info from the flight selected (flight number, departure date time, flight cost given fare class), 
-                        // and calculate the costs (flight total cost, plane ticket cost, plane ticket surcharge, plane ticket tax, flight booking fees, flight booking date),
-                        // and generate a flight reference number, 
-                        // and insert into FlightBooking table
-                        
-                        flag2 = true;
-                        break;
-                    case 2:
-                        // Hotel booking
-                        // Get hotel info from user: check-in date, check-out date, city, country, number of rooms, number of guests
-                        // Query for hotel options using the given info
-                        // Display hotel options as a sub menu to choose from
-                        // Get user input for hotel option
-                        // Display room options as a sub menu to choose from
-                        // Get user input for room option
-                        // Book hotel room by getting user input for booking info (user ID, checkin date, chekout date)
-                        // and info from room selected (room number),
-                        // and info from hotel selected (brand affiliation, hotel address)
-                        // calculate costs (hotel toatal cost, hotel tax, hotel booking fees, hotel booking date),
-                        // generate a hotel reference number,
-                        // and insert into HotelBooking table
-        
-                        flag2 = true;
-                        break;
-                    case 3:
-                        // Car rental booking
-                        // Get car rental info from user: pickup date time, return date time, pickup location, return location
-                        // Query for car rental options using the given info
-                        // Display car rental options as a sub menu to choose from
-                        // Get user input for car rental option
-                        // Book car rental by getting user input for booking info (user ID, pickup date time, return date time, pickup location, return location)
-                        // and info from car rental selected (car ar license plate, insurance)
-                        // calculate costs (car rental total cost, car rental tax, car rental booking fees, car rental booking date),
-                        // generate a car rental reference number,
-                        // and insert into CarRentalBooking table
-        
-                        flag2 = true;
-                        break;
-                    default:
-                        System.out.println("Invalid option. Please try again.");
-                        break;
-                }
-            }
-            // Query for booking info
-            resultSet = statement.executeQuery("SELECT * FROM TableName WHERE condition");
-            // Process and display query results
-            while (resultSet.next()) {
-                // Process each row of the result set
-                // Example: String data = resultSet.getString("columnName");
-            }
-            // Print booking success message
-            System.out.println("Booking successful");
-
-            flag = false;
-            resultSet.close(); 
-        }
-    }    
-}
-
-// Method to update data
-//query for user //update
-static void updateData(Statement statement) throws SQLException {
-    boolean flag = true;
-    try {    
+        boolean flag = true;
         while (flag) {
-            // Taking user input for username and password
-            System.out.print("Enter the username: ");
-            String userName = System.console().readLine();
-            if (userName.length() > 10) {
-                System.out.println("Username is too long. Please try again.");
+            // Taking user input for user id
+            System.out.print("Enter the user id: ");
+            int userId = Integer.parseInt(System.console().readLine());
+            //check if user exists
+            ResultSet resultSet = statement.executeQuery("SELECT user_id FROM Users WHERE user_id = " + userId);
+            if (!resultSet.next()) {
+                System.out.println("User does not exist. Please try again.");
                 continue;
             }
-            //check if user exists
-            try (ResultSet resultSet = statement.executeQuery("SELECT username FROM Registered WHERE username = '" + userName + "'");){
-                if (!resultSet.next()) {
-                    System.out.println("User does not exist or is not registered. Please try again.");        
+            else {
+                flag = false;
+                String query = "SELECT COALESCE(flight.user_id, hotel.user_id, car.user_id) AS user_id, flight.flight_total_cost AS flight_total_cost, " +
+                "hotel.hotel_total_cost AS hotel_total_cost, car.car_rental_total_cost AS car_rental_total_cost FROM (SELECT user_id, " +
+                "SUM(flight_total_cost) AS flight_total_cost FROM FlightBooking WHERE user_id = " + userId + " GROUP BY user_id) AS flight " +
+                "FULL OUTER JOIN (SELECT user_id, SUM(hotel_total_cost) AS hotel_total_cost FROM HotelBooking WHERE user_id = " + userId + 
+                " GROUP BY user_id) AS hotel ON flight.user_id = hotel.user_id FULL OUTER JOIN (SELECT user_id, " +
+                "SUM(car_rental_total_cost) AS car_rental_total_cost FROM CarRentalBooking WHERE user_id = " + userId + " GROUP BY " +
+                "user_id) AS car ON flight.user_id = car.user_id";
+
+                ResultSet resultSet2 = statement.executeQuery(query);
+
+                System.out.println("+------------+-------------------+------------------+-----------------------+");
+                System.out.println("| User ID    | Flight Total Cost | Hotel Total Cost | Car Rental Total Cost |");
+                System.out.println("+------------+-------------------+------------------+-----------------------+");
+                // Process and display query results
+                while (resultSet2.next()) {
+                    int resultUserId = resultSet2.getInt("user_id");
+                    double flightTotalCost = resultSet2.getDouble("flight_total_cost");
+                    double hotelTotalCost = resultSet2.getDouble("hotel_total_cost");
+                    double carRentalTotalCost = resultSet2.getDouble("car_rental_total_cost");
+                    System.out.printf("| %-10d | %-17.2f | %-16.2f | %-21.2f |\n", resultUserId, flightTotalCost, hotelTotalCost, carRentalTotalCost);
+                }
+                System.out.println("+------------+-------------------+------------------+-----------------------+");
+                resultSet2.close();
+            }
+            resultSet.close();
+        }   
+    }
+
+    // Method to insert data
+    //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
+    static void newBooking(Statement statement) throws SQLException {
+        try {
+            boolean flag2 = false;
+                while(!flag2) {
+                    // Taking user input for booking type
+                    System.out.println("Choose the booking type: ");
+                    System.out.println("    1. Flight");
+                    System.out.println("    2. Hotel");
+                    System.out.println("    3. Car Rental");
+                    System.out.print("Please Enter Your Option Number: ");
+                    int bookingType = Integer.parseInt(System.console().readLine());
+            
+                    switch (bookingType) {
+                        case 1:
+                            // Flight booking
+                            // Get flight info from user: departure date time, airline, fare class, departure city and country, arrival city and country, departure date
+                            // Query for flight options using the given info
+                            // Display flight options as a sub menu to choose from
+                            // Get user input for flight option
+                            // Book flight by getting user input for booking info (user ID, passenger names) 
+                            // and other info from the flight selected (flight number, departure date time, flight cost given fare class), 
+                            // and calculate the costs (flight total cost, plane ticket cost, plane ticket surcharge, plane ticket tax, flight booking fees, flight booking date),
+                            // and generate a flight reference number, 
+                            // and insert into FlightBooking table
+                            
+                            flag2 = true;
+                            break;
+                        case 2:
+                            // Hotel booking
+                            // Get hotel info from user: check-in date, check-out date, city, country, number of rooms, number of guests
+                            // Query for hotel options using the given info
+                            // Display hotel options as a sub menu to choose from
+                            // Get user input for hotel option
+                            // Display room options as a sub menu to choose from
+                            // Get user input for room option
+                            // Book hotel room by getting user input for booking info (user ID, checkin date, chekout date)
+                            // and info from room selected (room number),
+                            // and info from hotel selected (brand affiliation, hotel address)
+                            // calculate costs (hotel toatal cost, hotel tax, hotel booking fees, hotel booking date),
+                            // generate a hotel reference number,
+                            // and insert into HotelBooking table
+            
+                            flag2 = true;
+                            break;
+                        case 3:
+                            // Car rental booking
+                            // Get car rental info from user: pickup date time, return date time, pickup location, return location
+                            // Query for car rental options using the given info
+                            // Display car rental options as a sub menu to choose from
+                            // Get user input for car rental option
+                            // Book car rental by getting user input for booking info (user ID, pickup date time, return date time, pickup location, return location)
+                            // and info from car rental selected (car ar license plate, insurance)
+                            // calculate costs (car rental total cost, car rental tax, car rental booking fees, car rental booking date),
+                            // generate a car rental reference number,
+                            // and insert into CarRentalBooking table
+            
+                            flag2 = true;
+                            break;
+                        default:
+                            System.out.println("Invalid option. Please try again.");
+                            break;
+                    }
+                }
+                // Query for booking info
+                try (ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE condition")) {
+                    // Process and display query results
+                    while (resultSet.next()) {
+                        // Process each row of the result set
+                        // Example: String data = resultSet.getString("columnName");
+                    }
+                    // Print booking success message
+                    System.out.println("Booking successful");
+                }
+            }   
+            catch (SQLException e) {
+                e.printStackTrace(); 
+        }
+    }
+
+    // Method to update data
+    //query for user //update
+    static void updateData(Statement statement) throws SQLException {
+        boolean flag = true;
+        try {    
+            while (flag) {
+                // Taking user input for username and password
+                System.out.print("Enter the username: ");
+                String userName = System.console().readLine();
+                if (userName.length() > 10) {
+                    System.out.println("Username is too long. Please try again.");
                     continue;
                 }
-                else {
-                    //check password
-                    boolean goodpass = false;
-                    for (int i = 0; i < 3; i++) {
-                        System.out.print("Enter the password: ");
-                        String password = System.console().readLine();
-                        if (password.length() > 10) {
-                            System.out.println("Password is too long. Please try again.");
-                            i--;
-                            continue;
-                        }
-                        try (ResultSet resultSet2 = statement.executeQuery("SELECT password FROM Registered WHERE username = '" + userName + "' AND password = '" + password + "'");) {
-                            if (!resultSet2.next()) {
-                                System.out.println("Password is incorrect. Please try again.");
+                //check if user exists
+                try (ResultSet resultSet = statement.executeQuery("SELECT username FROM Registered WHERE username = '" + userName + "'");){
+                    if (!resultSet.next()) {
+                        System.out.println("User does not exist or is not registered. Please try again.");        
+                        continue;
+                    }
+                    else {
+                        //check password
+                        boolean goodpass = false;
+                        for (int i = 0; i < 3; i++) {
+                            System.out.print("Enter the password: ");
+                            String password = System.console().readLine();
+                            if (password.length() > 10) {
+                                System.out.println("Password is too long. Please try again.");
+                                i--;
                                 continue;
                             }
-                            else {
-                                goodpass = true;
-                                break;
+                            try (ResultSet resultSet2 = statement.executeQuery("SELECT password FROM Registered WHERE username = '" + userName + "' AND password = '" + password + "'");) {
+                                if (!resultSet2.next()) {
+                                    System.out.println("Password is incorrect. Please try again.");
+                                    continue;
+                                }
+                                else {
+                                    goodpass = true;
+                                    break;
+                                }
                             }
                         }
-                    }
-                    if (!goodpass) {
-                        System.out.println("You have entered the wrong password too many times. Please try again later.");
-                        return;
-                    }
-                    // Query for user -> resultSet
-                    try (ResultSet resultSet3 = statement.executeQuery("SELECT u.user_id, u.name, u.email, u.phone_number, u.address, u.credit_card_information, r.language FROM Users u JOIN Registered r ON u.user_id = r.user_id WHERE u.user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')" )) {
-                        // Process and display user info
-                        System.out.println("User info: ");
-                        System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
-                        System.out.println("| User ID    | Language | Name                | Email                          | Phone Number         | Address                                           | Credit Card Information              |");
-                        System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
-                        while (resultSet3.next()) {
-                            int userID = resultSet3.getInt("user_id");
-                            String language = resultSet3.getString("language");
-                            String name = resultSet3.getString("name");
-                            String email = resultSet3.getString("email");
-                            String phoneNumber = resultSet3.getString("phone_number");
-                            String address = resultSet3.getString("address");
-                            String creditCardInfo = resultSet3.getString("credit_card_information");
-                            System.out.printf("| %-10d | %-8s | %-19s | %-30s | %-20s | %-49s | %-36s |\n", userID, language, name, email, phoneNumber, address, creditCardInfo);
+                        if (!goodpass) {
+                            System.out.println("You have entered the wrong password too many times. Please try again later.");
+                            return;
                         }
-                        System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
-                        boolean flag3 = true;
-                        while(flag3) {
-                            // Ask user for which info to update
-                            System.out.println("Which information would you like to update?");
-                            System.out.println("    1. Language");
-                            System.out.println("    2. Name");
-                            System.out.println("    3. Email");
-                            System.out.println("    4. Phone Number");
-                            System.out.println("    5. Address");
-                            System.out.println("    6. Credit Card Information");
-                            System.out.println("    7. Quit");
-                            System.out.print("Please Enter Your Option Number: ");
-                            int option = Integer.parseInt(System.console().readLine());
-                            switch (option) {
-                                case 1:
-                                    // Update language
-                                    String language="";
-                                    while (true) {
-                                        // get user input for new language
-                                        System.out.print("Choose the new language: ");
-                                        System.out.println("    1. English");
-                                        System.out.println("    2. French");
-                                        System.out.println("Please Enter Your Option Number: ");
-                                        int languageOption = Integer.parseInt(System.console().readLine());
-                                        if (languageOption == 1) {
-                                            // set language to English
-                                            language = "en";
-                                            break;
-                                        }
-                                        else if (languageOption == 2) {
-                                            // set language to French
-                                            language = "fr";
-                                            break;
-                                        }
-                                        else {
-                                            System.out.println("Invalid option. Please try again.");
-                                            continue;
-                                        }
-                                    }
-                                    statement.executeUpdate("UPDATE Registered SET language = '" + language + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                    System.out.println("Data updated successfully");
-                                    break;
-                                case 2:
-                                    // Update name
-                                    String newname="";
-                                    while (true) {
-                                        // get user input for new name
-                                        System.out.print("Enter the new name: ");
-                                        newname = System.console().readLine();
-                                        if (newname.length() > 25) {
-                                            System.out.println("Name is too long. Please try again.");
-                                            continue;
-                                        }
-                                        else {
-                                            break;
-                                        }
-                                    }
-                                    // Execute update statement
-                                    statement.executeUpdate("UPDATE Users SET name = '" + newname + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                    System.out.println("Data updated successfully");
-                                    break;
-                                case 3:
-                                    // Update email
-                                    String newEmail = "";
-                                    while (true) {
-                                        // get user input for new email
-                                        System.out.print("Enter the new email: ");
-                                        newEmail = System.console().readLine();
-                                        if (newEmail.length() > 40) {
-                                            System.out.println("Email is too long. Please try again.");
-                                            continue;
-                                        }
-                                        else {
-                                            break;
-                                        }
-                                    }
-                                    // Execute update statement
-                                    statement.executeUpdate("UPDATE Users SET email = '" + newEmail + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                    System.out.println("Data updated successfully");
-                                    break;
-                                case 4:
-                                    // Update phone number
-                                    String newPhoneNumber = "";
-                                    while (true) {
-                                        // get user input for new phone number
-                                        System.out.print("Enter the new phone number: ");
-                                        newPhoneNumber = System.console().readLine();
-                                        if (newPhoneNumber.length() > 22) {
-                                            System.out.println("Phone number is too long. Please try again.");
-                                            continue;
-                                        }
-                                        else {
-                                            break;
-                                        }
-                                    }
-                                    // Execute update statement
-                                    statement.executeUpdate("UPDATE Users SET phone_number = '" + newPhoneNumber + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                    System.out.println("Data updated successfully");
-                                    break;
-                                case 5:
-                                    // Update address
-                                    String newAddress = "";
-                                    while (true) {
-                                        // get user input for new address
-                                        System.out.print("Enter the new address: ");
-                                        newAddress = System.console().readLine();
-                                        if (newAddress.length() > 50) {
-                                            System.out.println("Address is too long. Please try again.");
-                                            continue;
-                                        }
-                                        else {
-                                            break;
-                                        }
-                                    }
-                                    // Execute update statement
-                                    statement.executeUpdate("UPDATE Users SET address = '" + newAddress + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                    System.out.println("Data updated successfully");
-                                    break;
-                                case 6:
-                                    // Update credit card information
-                                    System.out.print("Enter the new credit card information: ");
-                                    String newCreditCardInfo = "";
-                                    while (true) {
-                                        // get user input for new credit card information
-                                        newCreditCardInfo = System.console().readLine();
-                                        if (newCreditCardInfo.length() > 28) {
-                                            System.out.println("Credit card information is too long. Please try again.");
-                                            continue;
-                                        }
-                                        else {
-                                            break;
-                                        }
-                                    }
-                                    // Execute update statement
-                                    statement.executeUpdate("UPDATE Users SET credit_card_information = '" + newCreditCardInfo + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')" );
-                                    System.out.println("Data updated successfully");
-                                    break;
-                                case 7:
-                                    flag3 = false;
-                                    break;
-                                default:
-                                    System.out.println("Invalid option. Please try again.");
-                                    break;
+                        // Query for user -> resultSet
+                        try (ResultSet resultSet3 = statement.executeQuery("SELECT u.user_id, u.name, u.email, u.phone_number, u.address, u.credit_card_information, r.language FROM Users u JOIN Registered r ON u.user_id = r.user_id WHERE u.user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')" )) {
+                            // Process and display user info
+                            System.out.println("User info: ");
+                            System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
+                            System.out.println("| User ID    | Language | Name                | Email                          | Phone Number         | Address                                           | Credit Card Information              |");
+                            System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
+                            while (resultSet3.next()) {
+                                int userID = resultSet3.getInt("user_id");
+                                String language = resultSet3.getString("language");
+                                String name = resultSet3.getString("name");
+                                String email = resultSet3.getString("email");
+                                String phoneNumber = resultSet3.getString("phone_number");
+                                String address = resultSet3.getString("address");
+                                String creditCardInfo = resultSet3.getString("credit_card_information");
+                                System.out.printf("| %-10d | %-8s | %-19s | %-30s | %-20s | %-49s | %-36s |\n", userID, language, name, email, phoneNumber, address, creditCardInfo);
                             }
+                            System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
+                            boolean flag3 = true;
+                            while(flag3) {
+                                // Ask user for which info to update
+                                System.out.println("Which information would you like to update?");
+                                System.out.println("    1. Language");
+                                System.out.println("    2. Name");
+                                System.out.println("    3. Email");
+                                System.out.println("    4. Phone Number");
+                                System.out.println("    5. Address");
+                                System.out.println("    6. Credit Card Information");
+                                System.out.println("    7. Quit");
+                                System.out.print("Please Enter Your Option Number: ");
+                                int option = Integer.parseInt(System.console().readLine());
+                                switch (option) {
+                                    case 1:
+                                        // Update language
+                                        String language="";
+                                        while (true) {
+                                            // get user input for new language
+                                            System.out.print("Choose the new language: ");
+                                            System.out.println("    1. English");
+                                            System.out.println("    2. French");
+                                            System.out.println("Please Enter Your Option Number: ");
+                                            int languageOption = Integer.parseInt(System.console().readLine());
+                                            if (languageOption == 1) {
+                                                // set language to English
+                                                language = "en";
+                                                break;
+                                            }
+                                            else if (languageOption == 2) {
+                                                // set language to French
+                                                language = "fr";
+                                                break;
+                                            }
+                                            else {
+                                                System.out.println("Invalid option. Please try again.");
+                                                continue;
+                                            }
+                                        }
+                                        statement.executeUpdate("UPDATE Registered SET language = '" + language + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
+                                        System.out.println("Data updated successfully");
+                                        break;
+                                    case 2:
+                                        // Update name
+                                        String newname="";
+                                        while (true) {
+                                            // get user input for new name
+                                            System.out.print("Enter the new name: ");
+                                            newname = System.console().readLine();
+                                            if (newname.length() > 25) {
+                                                System.out.println("Name is too long. Please try again.");
+                                                continue;
+                                            }
+                                            else {
+                                                break;
+                                            }
+                                        }
+                                        // Execute update statement
+                                        statement.executeUpdate("UPDATE Users SET name = '" + newname + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
+                                        System.out.println("Data updated successfully");
+                                        break;
+                                    case 3:
+                                        // Update email
+                                        String newEmail = "";
+                                        while (true) {
+                                            // get user input for new email
+                                            System.out.print("Enter the new email: ");
+                                            newEmail = System.console().readLine();
+                                            if (newEmail.length() > 40) {
+                                                System.out.println("Email is too long. Please try again.");
+                                                continue;
+                                            }
+                                            else {
+                                                break;
+                                            }
+                                        }
+                                        // Execute update statement
+                                        statement.executeUpdate("UPDATE Users SET email = '" + newEmail + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
+                                        System.out.println("Data updated successfully");
+                                        break;
+                                    case 4:
+                                        // Update phone number
+                                        String newPhoneNumber = "";
+                                        while (true) {
+                                            // get user input for new phone number
+                                            System.out.print("Enter the new phone number: ");
+                                            newPhoneNumber = System.console().readLine();
+                                            if (newPhoneNumber.length() > 22) {
+                                                System.out.println("Phone number is too long. Please try again.");
+                                                continue;
+                                            }
+                                            else {
+                                                break;
+                                            }
+                                        }
+                                        // Execute update statement
+                                        statement.executeUpdate("UPDATE Users SET phone_number = '" + newPhoneNumber + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
+                                        System.out.println("Data updated successfully");
+                                        break;
+                                    case 5:
+                                        // Update address
+                                        String newAddress = "";
+                                        while (true) {
+                                            // get user input for new address
+                                            System.out.print("Enter the new address: ");
+                                            newAddress = System.console().readLine();
+                                            if (newAddress.length() > 50) {
+                                                System.out.println("Address is too long. Please try again.");
+                                                continue;
+                                            }
+                                            else {
+                                                break;
+                                            }
+                                        }
+                                        // Execute update statement
+                                        statement.executeUpdate("UPDATE Users SET address = '" + newAddress + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
+                                        System.out.println("Data updated successfully");
+                                        break;
+                                    case 6:
+                                        // Update credit card information
+                                        System.out.print("Enter the new credit card information: ");
+                                        String newCreditCardInfo = "";
+                                        while (true) {
+                                            // get user input for new credit card information
+                                            newCreditCardInfo = System.console().readLine();
+                                            if (newCreditCardInfo.length() > 28) {
+                                                System.out.println("Credit card information is too long. Please try again.");
+                                                continue;
+                                            }
+                                            else {
+                                                break;
+                                            }
+                                        }
+                                        // Execute update statement
+                                        statement.executeUpdate("UPDATE Users SET credit_card_information = '" + newCreditCardInfo + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')" );
+                                        System.out.println("Data updated successfully");
+                                        break;
+                                    case 7:
+                                        flag3 = false;
+                                        break;
+                                    default:
+                                        System.out.println("Invalid option. Please try again.");
+                                        break;
+                                }
+                            }
+                            System.out.println("Updates Done");
+                            flag = false;
                         }
-                        System.out.println("Updates Done");
-                        flag = false;
                     }
                 }
             }
+        }catch(SQLException e){
+            e.printStackTrace();
         }
-    }catch(SQLException e){
-        e.printStackTrace();
     }
-}
 
-// Method to delete data using multiple sql statements
-//get flight reference number for cancelled flight //query for flight bookings with that flight //query for next available flight closest date to same location //update bookings for all users who had the cancelled flight to the next available one //delete cancelled flight
-static void deleteData(Statement statement) {
-    //FOR GRADING
-    System.out.println("FOR GRADING PURPOSES ONLY, THE PASSWORD FOR ADMINS IS 'admin000'");
-    try {
-        //get the password
-        System.out.print("Enter the password: ");
-        String password = System.console().readLine();
-        if (!password.equals("admin000")) {
-            System.out.println("Incorrect password. This option is only for admins.");
-            return;
-        }
-        while (true) {
-            //get the flight number and departure datetime
-            System.out.println("Choose the flight number and departure date of the flight to be cancelled: ");
-            // Fetch flights from database
-            int i = 1;
-            try (ResultSet resultSet0 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights")) {
-                System.out.println("Available Flights: ");
-                while (resultSet0.next()) {
-                    String flightNumber = resultSet0.getString("flight_number");
-                    String departureDate = resultSet0.getString("departure_date");
-                    System.out.println("    " + i + ". " + flightNumber + " on " + departureDate);
-                    i++;
-                }
-            }
-            int option = 0;
-            while (true) {
-                System.out.print("Please Enter Your Option Number for the Flight to Cancel: ");
-                option = Integer.parseInt(System.console().readLine());
-                if (option < 1 || option > i) {
-                    System.out.println("Invalid option. Please try again.");
-                    continue;
-                }
-                else {
-                    break;
-                }
-            }
-            //get the flight number and departure date
-            String flightNumber = "";
-            String departureDate = "";
-            try (ResultSet resultSet5 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights")) {
-                int count = 1;
-                while (resultSet5.next()) {
-                    if (count == option) {
-                        flightNumber = resultSet5.getString("flight_number");
-                        departureDate = resultSet5.getString("departure_date");
-                        break;
-                    }
-                    count++;
-                }
-            }
-            // Check if the flight exists
-            try (ResultSet resultSet = statement.executeQuery("SELECT flight_number FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'")) {
-                if (!resultSet.next()) {
-                    System.out.println("Flight does not exist. Please try again.");
-                    resultSet.close();
-                    continue;
-                }
-            }
-            // Check if there are any bookings for the flight
-            ResultSet resultSet1 = statement.executeQuery("SELECT flight_reference_number FROM FlightBooking WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
-            if (!resultSet1.next()) {
-                // No bookings, just cancel the flight. Delete the flight from the flight table
-                statement.executeUpdate("DELETE FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
-                System.out.println("Flight cancelled successfully");
-                resultSet1.close();
+    // Method to delete data using multiple sql statements
+    //get flight reference number for cancelled flight //query for flight bookings with that flight //query for next available flight closest date to same location //update bookings for all users who had the cancelled flight to the next available one //delete cancelled flight
+    static void deleteData(Statement statement) {
+        //FOR GRADING
+        System.out.println("FOR GRADING PURPOSES ONLY, THE PASSWORD FOR ADMINS IS 'admin000'");
+        try {
+            //get the password
+            System.out.print("Enter the password: ");
+            String password = System.console().readLine();
+            if (!password.equals("admin000")) {
+                System.out.println("Incorrect password. This option is only for admins.");
                 return;
             }
-            else {
-                // Print available flights for rebooking
-                resultSet1.close();
-                System.out.println("Available Flights for Rebooking: ");
-                int k = 1;
-                try (ResultSet resultSet2 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights WHERE departure_city = (SELECT departure_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND DATE(departure_date_time) != '" + departureDate + "'")) {
-                    while (resultSet2.next()) {
-                        String flightNumber2 = resultSet2.getString("flight_number");
-                        String departureDate2 = resultSet2.getString("departure_date");
-                        System.out.println("    " + k + ". " + flightNumber2 + " on " + departureDate2);
-                        k++;
+            while (true) {
+                //get the flight number and departure datetime
+                System.out.println("Choose the flight number and departure date of the flight to be cancelled: ");
+                // Fetch flights from database
+                int i = 1;
+                try (ResultSet resultSet0 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights")) {
+                    System.out.println("Available Flights: ");
+                    while (resultSet0.next()) {
+                        String flightNumber = resultSet0.getString("flight_number");
+                        String departureDate = resultSet0.getString("departure_date");
+                        System.out.println("    " + i + ". " + flightNumber + " on " + departureDate);
+                        i++;
                     }
                 }
-                // Prompt for rebooking option
-                int option2 = 0;
+                int option = 0;
                 while (true) {
-                    System.out.print("Please Enter Your Option Number for the Flight you would like to Book: ");
-                    option2 = Integer.parseInt(System.console().readLine());
-                    if (option2 < 1 || option2 > k) {
+                    System.out.print("Please Enter Your Option Number for the Flight to Cancel: ");
+                    option = Integer.parseInt(System.console().readLine());
+                    if (option < 1 || option > i) {
                         System.out.println("Invalid option. Please try again.");
                         continue;
                     }
@@ -656,74 +587,130 @@ static void deleteData(Statement statement) {
                         break;
                     }
                 }
-                String flightNumber2 = "";
-                String departureDate2 = "";
-                // Get the flight number and departure date for rebooking
-                try (ResultSet resultSet6 = statement.executeQuery("SELECT flight_number, departure_date_time FROM Flights WHERE departure_city = (SELECT departure_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND DATE(departure_date_time) != '" + departureDate + "'")) {                        int count = 1;
-                    flightNumber2 = "";
-                    departureDate2 = "";
-                    while (resultSet6.next()){
-                        if (count == option2) {
-                            flightNumber2 = resultSet6.getString("flight_number");
-                            departureDate2 = resultSet6.getString("departure_date_time");
+                //get the flight number and departure date
+                String flightNumber = "";
+                String departureDate = "";
+                try (ResultSet resultSet5 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights")) {
+                    int count = 1;
+                    while (resultSet5.next()) {
+                        if (count == option) {
+                            flightNumber = resultSet5.getString("flight_number");
+                            departureDate = resultSet5.getString("departure_date");
                             break;
                         }
                         count++;
                     }
                 }
-                // Get the flight reference number for the cancelled flight
-                // Update the flight booking and delete the cancelled flight
-                // for each user who had the cancelled flight
-                ResultSet resultSet4 = statement.executeQuery("SELECT flight_reference_number FROM FlightBooking WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
-                List<Integer> flightReferenceNumbers = new ArrayList<>();
-                // Retrieve all flight reference numbers first
-                while (resultSet4.next()) {
-                    int flightRefNumber = resultSet4.getInt("flight_reference_number");
-                    flightReferenceNumbers.add(flightRefNumber);
+                // Check if the flight exists
+                try (ResultSet resultSet = statement.executeQuery("SELECT flight_number FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'")) {
+                    if (!resultSet.next()) {
+                        System.out.println("Flight does not exist. Please try again.");
+                        resultSet.close();
+                        continue;
+                    }
                 }
-                resultSet4.close(); // Close the ResultSet after retrieving all data
-                // Iterate through the list of flight reference numbers and perform the update
-                for (int refNumber : flightReferenceNumbers) {
-                    statement.executeUpdate("UPDATE FlightBooking SET flight_number = '" + flightNumber2 + "', departure_date_time = '" + departureDate2 + "' WHERE flight_reference_number = " + refNumber);
+                // Check if there are any bookings for the flight
+                ResultSet resultSet1 = statement.executeQuery("SELECT flight_reference_number FROM FlightBooking WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+                if (!resultSet1.next()) {
+                    // No bookings, just cancel the flight. Delete the flight from the flight table
+                    statement.executeUpdate("DELETE FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+                    System.out.println("Flight cancelled successfully");
+                    resultSet1.close();
+                    return;
                 }
-                System.out.println("Bookings updated successfully");
-                // Delete the cancelled flight
-                statement.executeUpdate("DELETE FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
-                System.out.println("Flight cancelled successfully");
-                resultSet4.close();
-                return;
-            }            
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-    }
-}
-
-
-// Method for querying Find all bookings for a given user (booking history)
-static void userHistory(Statement statement) throws SQLException {
-    boolean flag = true;
-    while (flag) {
-        // Taking user input for user id
-        System.out.print("Enter the user id: ");
-        int userId = Integer.parseInt(System.console().readLine());
-        //check if user exists
-        ResultSet resultSet = statement.executeQuery("SELECT user_id FROM User WHERE user_id = " + userId);
-        if (!resultSet.next()) {
-            System.out.println("User does not exist. Please try again.");
-            resultSet.close();
-            continue;
-        }
-        else {
-            // Query for user bookings. in each bookings table, get all bookings for the user and display
-            // Process and display query results
-            while (resultSet.next()) {
-                // Process each row of the result set
-                // Example: String data = resultSet.getString("columnName");
+                else {
+                    // Print available flights for rebooking
+                    resultSet1.close();
+                    System.out.println("Available Flights for Rebooking: ");
+                    int k = 1;
+                    try (ResultSet resultSet2 = statement.executeQuery("SELECT flight_number, DATE(departure_date_time) AS departure_date FROM Flights WHERE departure_city = (SELECT departure_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND DATE(departure_date_time) != '" + departureDate + "'")) {
+                        while (resultSet2.next()) {
+                            String flightNumber2 = resultSet2.getString("flight_number");
+                            String departureDate2 = resultSet2.getString("departure_date");
+                            System.out.println("    " + k + ". " + flightNumber2 + " on " + departureDate2);
+                            k++;
+                        }
+                    }
+                    // Prompt for rebooking option
+                    int option2 = 0;
+                    while (true) {
+                        System.out.print("Please Enter Your Option Number for the Flight you would like to Book: ");
+                        option2 = Integer.parseInt(System.console().readLine());
+                        if (option2 < 1 || option2 > k) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                    String flightNumber2 = "";
+                    String departureDate2 = "";
+                    // Get the flight number and departure date for rebooking
+                    try (ResultSet resultSet6 = statement.executeQuery("SELECT flight_number, departure_date_time FROM Flights WHERE departure_city = (SELECT departure_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND arrival_city = (SELECT arrival_city FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "') AND DATE(departure_date_time) != '" + departureDate + "'")) {                        int count = 1;
+                        flightNumber2 = "";
+                        departureDate2 = "";
+                        while (resultSet6.next()){
+                            if (count == option2) {
+                                flightNumber2 = resultSet6.getString("flight_number");
+                                departureDate2 = resultSet6.getString("departure_date_time");
+                                break;
+                            }
+                            count++;
+                        }
+                    }
+                    // Get the flight reference number for the cancelled flight
+                    // Update the flight booking and delete the cancelled flight
+                    // for each user who had the cancelled flight
+                    ResultSet resultSet4 = statement.executeQuery("SELECT flight_reference_number FROM FlightBooking WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+                    List<Integer> flightReferenceNumbers = new ArrayList<>();
+                    // Retrieve all flight reference numbers first
+                    while (resultSet4.next()) {
+                        int flightRefNumber = resultSet4.getInt("flight_reference_number");
+                        flightReferenceNumbers.add(flightRefNumber);
+                    }
+                    resultSet4.close(); // Close the ResultSet after retrieving all data
+                    // Iterate through the list of flight reference numbers and perform the update
+                    for (int refNumber : flightReferenceNumbers) {
+                        statement.executeUpdate("UPDATE FlightBooking SET flight_number = '" + flightNumber2 + "', departure_date_time = '" + departureDate2 + "' WHERE flight_reference_number = " + refNumber);
+                    }
+                    System.out.println("Bookings updated successfully");
+                    // Delete the cancelled flight
+                    statement.executeUpdate("DELETE FROM Flights WHERE flight_number = '" + flightNumber + "' AND DATE(departure_date_time) = '" + departureDate + "'");
+                    System.out.println("Flight cancelled successfully");
+                    return;
+                }            
             }
-            flag = false;
-            resultSet.close(); 
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
-}
+
+
+    // Method for querying Find all bookings for a given user (booking history)
+    static void userHistory(Statement statement) throws SQLException {
+        boolean flag = true;
+        while (flag) {
+            // Taking user input for user id
+            System.out.print("Enter the user id: ");
+            int userId = Integer.parseInt(System.console().readLine());
+            //check if user exists
+            ResultSet resultSet = statement.executeQuery("SELECT user_id FROM User WHERE user_id = " + userId);
+            if (!resultSet.next()) {
+                System.out.println("User does not exist. Please try again.");
+                resultSet.close();
+                continue;
+            }
+            else {
+                // Query for user bookings. in each bookings table, get all bookings for the user and display
+                // Process and display query results
+                while (resultSet.next()) {
+                    // Process each row of the result set
+                    // Example: String data = resultSet.getString("columnName");
+                }
+                flag = false;
+                resultSet.close(); 
+            }
+        }
+    }
 }
