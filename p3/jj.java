@@ -46,7 +46,7 @@ class jj //find better name
         Statement statement = con.createStatement ( ) ;
 
         //main program
-        try {
+        try (Scanner scanner0 = new Scanner(System.in)) {
             boolean run = true;
             while(run) {
                 System.out.println("\nBookings Main Menu: ");
@@ -58,30 +58,36 @@ class jj //find better name
                 System.out.println("    6. Quit");
                 System.out.print("Please Enter Your Option Number: ");
 
-                int option = Integer.parseInt(System.console().readLine());
-
-                switch (option) {
-                    case 1: //change THIS
-                        bookingTotalCosts(statement);
-                        break;
-                    case 2:
-                        newBooking(statement);
-                        break;
-                    case 3:
-                        updateData(statement);
-                        break;
-                    case 4:
-                        deleteData(statement);
-                        break;
-                    case 5: //add THIS
-                        userHistory(statement);
-                        break;
-                    case 6:
-                        run = false;
-                        break;
-                    default:
-                        System.out.println("Invalid option. Please try again.");
-                        break;
+                if (!scanner0.hasNextInt()) {
+                    System.out.println("Invalid option. Please try again.");
+                    scanner0.next();
+                    continue;
+                }
+                else {
+                    int option = scanner0.nextInt();
+                    switch (option) {
+                        case 1: //change THIS
+                            bookingTotalCosts(statement);
+                            break;
+                        case 2:
+                            newBooking(statement);
+                            break;
+                        case 3:
+                            updateData(con, statement, scanner0);
+                            break;
+                        case 4:
+                            deleteData(statement, scanner0);
+                            break;
+                        case 5: //add THIS
+                            userHistory(statement);
+                            break;
+                        case 6:
+                            run = false;
+                            break;
+                        default:
+                            System.out.println("Invalid option. Please try again.");
+                            break;
+                    }
                 }
             }
         } 
@@ -308,9 +314,9 @@ class jj //find better name
                             }
                             // Query for user_id using the given username and password
                             // Get user input for booking type
-                            bookanything(statement);
-                            flag2 = true;
-                            break;
+                            //bookanything(statement);
+                            //flag2 = true;
+                            //break;
                         case 2:
                             // New user
                             // Get user info from user: name, email, phone number, address, credit card information, language
@@ -400,226 +406,275 @@ class jj //find better name
 
     // Method to update data
     //query for user //update
-    static void updateData(Statement statement) throws SQLException {
+    static void updateData(Connection con, Statement statement, Scanner scanner) throws SQLException {
         boolean flag = true;
+        scanner.nextLine(); // Consume the newline character
         try {    
             while (flag) {
                 // Taking user input for username and password
                 System.out.print("Enter the username: ");
-                String userName = System.console().readLine();
+                String userName = scanner.nextLine();
                 if (userName.length() > 10) {
                     System.out.println("Username is too long. Please try again.");
                     continue;
                 }
                 //check if user exists
-                try (ResultSet resultSet = statement.executeQuery("SELECT username FROM Registered WHERE username = '" + userName + "'");){
-                    if (!resultSet.next()) {
-                        System.out.println("User does not exist or is not registered. Please try again.");        
-                        continue;
-                    }
-                    else {
-                        //check password
-                        boolean goodpass = false;
-                        for (int i = 0; i < 3; i++) {
-                            System.out.print("Enter the password: ");
-                            String password = System.console().readLine();
-                            if (password.length() > 10) {
-                                System.out.println("Password is too long. Please try again.");
-                                i--;
-                                continue;
-                            }
-                            try (ResultSet resultSet2 = statement.executeQuery("SELECT password FROM Registered WHERE username = '" + userName + "' AND password = '" + password + "'");) {
-                                if (!resultSet2.next()) {
-                                    System.out.println("Password is incorrect. Please try again.");
+                //using prepared statemtne to prevent injection attacks
+                String userQuery = "SELECT username FROM Registered WHERE username = ?"; 
+                try (PreparedStatement userPrepStatement = con.prepareStatement(userQuery)) {
+                    userPrepStatement.setString(1, userName);
+                    try (ResultSet resultSet = userPrepStatement.executeQuery()) {
+                        if (!resultSet.next()) {
+                            System.out.println("User does not exist or is not registered. Please try again.");
+                            continue;
+                        }
+                        else {
+                            //check password
+                            boolean goodpass = false;
+                            for (int i = 0; i < 3; i++) {
+                                System.out.print("Enter the password: ");
+                                String password = scanner.nextLine();
+                                if (password.length() > 10) {
+                                    System.out.println("Password is too long. Please try again.");
+                                    i--;
                                     continue;
                                 }
-                                else {
-                                    goodpass = true;
-                                    break;
+                                String passQuery = "SELECT password FROM Registered WHERE username = ? AND password = ?";
+                                try (PreparedStatement passPrepStatement = con.prepareStatement(passQuery)) {
+                                    passPrepStatement.setString(1, userName);
+                                    passPrepStatement.setString(2, password);
+                                    try (ResultSet resultSet2 = passPrepStatement.executeQuery()) {
+                                        if (!resultSet2.next()) {
+                                            System.out.println("Password is incorrect. Please try again.");
+                                            continue;
+                                        }
+                                        else {
+                                            goodpass = true;
+                                            break;
+                                        }
+                                    }
                                 }
                             }
-                        }
-                        if (!goodpass) {
-                            System.out.println("You have entered the wrong password too many times. Please try again later.");
-                            return;
-                        }
-                        // Query for user -> resultSet
-                        try (ResultSet resultSet3 = statement.executeQuery("SELECT u.user_id, u.name, u.email, u.phone_number, u.address, u.credit_card_information, r.language FROM Users u JOIN Registered r ON u.user_id = r.user_id WHERE u.user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')" )) {
-                            // Process and display user info
-                            System.out.println("User info: ");
-                            System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
-                            System.out.println("| User ID    | Language | Name                | Email                          | Phone Number         | Address                                           | Credit Card Information              |");
-                            System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
-                            while (resultSet3.next()) {
-                                int userID = resultSet3.getInt("user_id");
-                                String language = resultSet3.getString("language");
-                                String name = resultSet3.getString("name");
-                                String email = resultSet3.getString("email");
-                                String phoneNumber = resultSet3.getString("phone_number");
-                                String address = resultSet3.getString("address");
-                                String creditCardInfo = resultSet3.getString("credit_card_information");
-                                System.out.printf("| %-10d | %-8s | %-19s | %-30s | %-20s | %-49s | %-36s |\n", userID, language, name, email, phoneNumber, address, creditCardInfo);
+                            if (!goodpass) {
+                                System.out.println("You have entered the wrong password too many times. Please try again later.");
+                                return;
                             }
-                            System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
-                            boolean flag3 = true;
-                            while(flag3) {
-                                // Ask user for which info to update
-                                System.out.println("Which information would you like to update?");
-                                System.out.println("    1. Language");
-                                System.out.println("    2. Name");
-                                System.out.println("    3. Email");
-                                System.out.println("    4. Phone Number");
-                                System.out.println("    5. Address");
-                                System.out.println("    6. Credit Card Information");
-                                System.out.println("    7. Quit");
-                                System.out.print("Please Enter Your Option Number: ");
-                                int option = Integer.parseInt(System.console().readLine());
-                                switch (option) {
-                                    case 1:
-                                        // Update language
-                                        String language="";
-                                        while (true) {
-                                            // get user input for new language
-                                            System.out.print("Choose the new language: ");
-                                            System.out.println("    1. English");
-                                            System.out.println("    2. French");
-                                            System.out.println("Please Enter Your Option Number: ");
-                                            int languageOption = Integer.parseInt(System.console().readLine());
-                                            if (languageOption == 1) {
-                                                // set language to English
-                                                language = "en";
+                            // Query for user -> resultSet
+                            String userQuery2 = "SELECT u.user_id, u.name, u.email, u.phone_number, u.address, u.credit_card_information, r.language FROM Users u JOIN Registered r ON u.user_id = r.user_id WHERE u.user_id = (SELECT user_id FROM Registered WHERE username = ?)";
+                            try (PreparedStatement userPrepStatement2 = con.prepareStatement(userQuery2)) {
+                                userPrepStatement2.setString(1, userName);
+                                try (ResultSet resultSet3 = userPrepStatement2.executeQuery()) {
+                                    // Process and display user info
+                                    System.out.println("User info: ");
+                                    System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
+                                    System.out.println("| User ID    | Language | Name                | Email                          | Phone Number         | Address                                           | Credit Card Information              |");
+                                    System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
+                                    while (resultSet3.next()) {
+                                        int userID = resultSet3.getInt("user_id");
+                                        String language = resultSet3.getString("language");
+                                        String name = resultSet3.getString("name");
+                                        String email = resultSet3.getString("email");
+                                        String phoneNumber = resultSet3.getString("phone_number");
+                                        String address = resultSet3.getString("address");
+                                        String creditCardInfo = resultSet3.getString("credit_card_information");
+                                        System.out.printf("| %-10d | %-8s | %-19s | %-30s | %-20s | %-49s | %-36s |\n", userID, language, name, email, phoneNumber, address, creditCardInfo);   
+                                    }
+                                    System.out.println("+------------+----------+---------------------+--------------------------------+----------------------+---------------------------------------------------+--------------------------------------+");
+                                    boolean flag3 = true;
+                                    while(flag3) {
+                                        // Ask user for which info to update
+                                        System.out.println("Which information would you like to update?");
+                                        System.out.println("    1. Language");
+                                        System.out.println("    2. Name");
+                                        System.out.println("    3. Email");
+                                        System.out.println("    4. Phone Number");
+                                        System.out.println("    5. Address");
+                                        System.out.println("    6. Credit Card Information");
+                                        System.out.println("    7. Quit");
+                                        System.out.print("Please Enter Your Option Number: ");
+                                        if (!scanner.hasNextInt()) {
+                                            System.out.println("Invalid option. Please try again.");
+                                            scanner.next();
+                                            continue;
+                                        }
+                                        int option = scanner.nextInt();
+                                        switch (option) {
+                                            case 1:
+                                                // Update language
+                                                String language="";
+                                                while (true) {
+                                                    // get user input for new language
+                                                    System.out.println("Choose the new language: ");
+                                                    System.out.println("    1. English");
+                                                    System.out.println("    2. French");
+                                                    System.out.println("Please Enter Your Option Number: ");
+                                                    if (!scanner.hasNextInt()) {
+                                                        System.out.println("Invalid option. Please try again.");
+                                                        scanner.next();
+                                                        continue;
+                                                    }
+                                                    int languageOption = scanner.nextInt();
+                                                    if (languageOption == 1) {
+                                                        // set language to English
+                                                        language = "en";
+                                                        break;
+                                                    }
+                                                    else if (languageOption == 2) {
+                                                        // set language to French
+                                                        language = "fr";
+                                                        break;
+                                                    }
+                                                    else {
+                                                        System.out.println("Invalid option. Please try again.");
+                                                        continue;
+                                                    }
+                                                }
+                                                String updateLanguageQuery = "UPDATE Registered SET language = ? WHERE user_id = (SELECT user_id FROM Registered WHERE username = ?)";
+                                                try (PreparedStatement updateLanguagePrepStatement = con.prepareStatement(updateLanguageQuery)) {
+                                                    updateLanguagePrepStatement.setString(1, language);
+                                                    updateLanguagePrepStatement.setString(2, userName);
+                                                    updateLanguagePrepStatement.executeUpdate();
+                                                    System.out.println("Data updated successfully");
+                                                }
                                                 break;
-                                            }
-                                            else if (languageOption == 2) {
-                                                // set language to French
-                                                language = "fr";
+                                            case 2:
+                                                // Update name
+                                                String newname="";
+                                                while (true) {
+                                                    // get user input for new name
+                                                    scanner.nextLine(); // Consume the newline character
+                                                    System.out.print("Enter the new name: ");
+                                                    newname = scanner.nextLine();
+                                                    if (newname.length() > 25) {
+                                                        System.out.println("Name is too long. Please try again.");
+                                                        continue;
+                                                    }
+                                                    else {
+                                                        break;
+                                                    }
+                                                }
+                                                // Execute update statement
+                                                String updateNameQuery = "UPDATE Users SET name = ? WHERE user_id = (SELECT user_id FROM Registered WHERE username = ?)";
+                                                try (PreparedStatement updateNamePrepStatement = con.prepareStatement(updateNameQuery)) {
+                                                    updateNamePrepStatement.setString(1, newname);
+                                                    updateNamePrepStatement.setString(2, userName);
+                                                    updateNamePrepStatement.executeUpdate();
+                                                    System.out.println("Data updated successfully");
+                                                }
                                                 break;
-                                            }
-                                            else {
+                                            case 3:
+                                                // Update email
+                                                String newEmail = "";
+                                                while (true) {
+                                                    // get user input for new email
+                                                    scanner.nextLine(); // Consume the newline character
+                                                    System.out.print("Enter the new email: ");
+                                                    newEmail = scanner.nextLine();
+                                                    if (newEmail.length() > 40) {
+                                                        System.out.println("Email is too long. Please try again.");
+                                                        continue;
+                                                    }
+                                                    else {
+                                                        break;
+                                                    }
+                                                }
+                                                // Execute update statement
+                                                String updateEmailQuery = "UPDATE Users SET email = ? WHERE user_id = (SELECT user_id FROM Registered WHERE username = ?)";
+                                                try (PreparedStatement updateEmailPrepStatement = con.prepareStatement(updateEmailQuery)) {
+                                                    updateEmailPrepStatement.setString(1, newEmail);
+                                                    updateEmailPrepStatement.setString(2, userName);
+                                                    updateEmailPrepStatement.executeUpdate();
+                                                    System.out.println("Data updated successfully");
+                                                }
+                                                break;
+                                            case 4:
+                                                // Update phone number
+                                                String newPhoneNumber = "";
+                                                while (true) {
+                                                    // get user input for new phone number
+                                                    scanner.nextLine(); // Consume the newline character
+                                                    System.out.print("Enter the new phone number: ");
+                                                    newPhoneNumber = scanner.nextLine();
+                                                    if (newPhoneNumber.length() > 22) {
+                                                        System.out.println("Phone number is too long. Please try again.");
+                                                        continue;
+                                                    }
+                                                    else {
+                                                        break;
+                                                    }
+                                                }
+                                                // Execute update statement
+                                                String updatePhoneNumberQuery = "UPDATE Users SET phone_number = ? WHERE user_id = (SELECT user_id FROM Registered WHERE username = ?)";
+                                                try (PreparedStatement updatePhoneNumberPrepStatement = con.prepareStatement(updatePhoneNumberQuery)) {
+                                                    updatePhoneNumberPrepStatement.setString(1, newPhoneNumber);
+                                                    updatePhoneNumberPrepStatement.setString(2, userName);
+                                                    updatePhoneNumberPrepStatement.executeUpdate();
+                                                    System.out.println("Data updated successfully");
+                                                }
+                                                break;
+                                            case 5:
+                                                // Update address
+                                                String newAddress = "";
+                                                while (true) {
+                                                    // get user input for new address
+                                                    scanner.nextLine(); // Consume the newline character
+                                                    System.out.print("Enter the new address: ");
+                                                    newAddress = scanner.nextLine();
+                                                    if (newAddress.length() > 50) {
+                                                        System.out.println("Address is too long. Please try again.");
+                                                        continue;
+                                                    }
+                                                    else {
+                                                        break;
+                                                    }
+                                                }
+                                                // Execute update statement
+                                                String updateAddressQuery = "UPDATE Users SET address = ? WHERE user_id = (SELECT user_id FROM Registered WHERE username = ?)";
+                                                try (PreparedStatement updateAddressPrepStatement = con.prepareStatement(updateAddressQuery)) {
+                                                    updateAddressPrepStatement.setString(1, newAddress);
+                                                    updateAddressPrepStatement.setString(2, userName);
+                                                    updateAddressPrepStatement.executeUpdate();
+                                                    System.out.println("Data updated successfully");
+                                                }
+                                                break;
+                                            case 6:
+                                                // Update credit card information
+                                                scanner.nextLine(); // Consume the newline character
+                                                System.out.print("Enter the new credit card information: ");
+                                                String newCreditCardInfo = scanner.nextLine();
+                                                // Execute update statement
+                                                String updateCreditCardInfoQuery = "UPDATE Users SET credit_card_information = ? WHERE user_id = (SELECT user_id FROM Registered WHERE username = ?)";
+                                                try (PreparedStatement updateCreditCardInfoPrepStatement = con.prepareStatement(updateCreditCardInfoQuery)) {
+                                                    updateCreditCardInfoPrepStatement.setString(1, newCreditCardInfo);
+                                                    updateCreditCardInfoPrepStatement.setString(2, userName);
+                                                    updateCreditCardInfoPrepStatement.executeUpdate();
+                                                    System.out.println("Data updated successfully");
+                                                }
+                                                break;
+                                            case 7:
+                                                flag3 = false;
+                                                break;
+                                            default:
                                                 System.out.println("Invalid option. Please try again.");
-                                                continue;
-                                            }
-                                        }
-                                        statement.executeUpdate("UPDATE Registered SET language = '" + language + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                        System.out.println("Data updated successfully");
-                                        break;
-                                    case 2:
-                                        // Update name
-                                        String newname="";
-                                        while (true) {
-                                            // get user input for new name
-                                            System.out.print("Enter the new name: ");
-                                            newname = System.console().readLine();
-                                            if (newname.length() > 25) {
-                                                System.out.println("Name is too long. Please try again.");
-                                                continue;
-                                            }
-                                            else {
                                                 break;
                                             }
                                         }
-                                        // Execute update statement
-                                        statement.executeUpdate("UPDATE Users SET name = '" + newname + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                        System.out.println("Data updated successfully");
-                                        break;
-                                    case 3:
-                                        // Update email
-                                        String newEmail = "";
-                                        while (true) {
-                                            // get user input for new email
-                                            System.out.print("Enter the new email: ");
-                                            newEmail = System.console().readLine();
-                                            if (newEmail.length() > 40) {
-                                                System.out.println("Email is too long. Please try again.");
-                                                continue;
-                                            }
-                                            else {
-                                                break;
-                                            }
-                                        }
-                                        // Execute update statement
-                                        statement.executeUpdate("UPDATE Users SET email = '" + newEmail + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                        System.out.println("Data updated successfully");
-                                        break;
-                                    case 4:
-                                        // Update phone number
-                                        String newPhoneNumber = "";
-                                        while (true) {
-                                            // get user input for new phone number
-                                            System.out.print("Enter the new phone number: ");
-                                            newPhoneNumber = System.console().readLine();
-                                            if (newPhoneNumber.length() > 22) {
-                                                System.out.println("Phone number is too long. Please try again.");
-                                                continue;
-                                            }
-                                            else {
-                                                break;
-                                            }
-                                        }
-                                        // Execute update statement
-                                        statement.executeUpdate("UPDATE Users SET phone_number = '" + newPhoneNumber + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                        System.out.println("Data updated successfully");
-                                        break;
-                                    case 5:
-                                        // Update address
-                                        String newAddress = "";
-                                        while (true) {
-                                            // get user input for new address
-                                            System.out.print("Enter the new address: ");
-                                            newAddress = System.console().readLine();
-                                            if (newAddress.length() > 50) {
-                                                System.out.println("Address is too long. Please try again.");
-                                                continue;
-                                            }
-                                            else {
-                                                break;
-                                            }
-                                        }
-                                        // Execute update statement
-                                        statement.executeUpdate("UPDATE Users SET address = '" + newAddress + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')");
-                                        System.out.println("Data updated successfully");
-                                        break;
-                                    case 6:
-                                        // Update credit card information
-                                        System.out.print("Enter the new credit card information: ");
-                                        String newCreditCardInfo = "";
-                                        while (true) {
-                                            // get user input for new credit card information
-                                            newCreditCardInfo = System.console().readLine();
-                                            if (newCreditCardInfo.length() > 28) {
-                                                System.out.println("Credit card information is too long. Please try again.");
-                                                continue;
-                                            }
-                                            else {
-                                                break;
-                                            }
-                                        }
-                                        // Execute update statement
-                                        statement.executeUpdate("UPDATE Users SET credit_card_information = '" + newCreditCardInfo + "' WHERE user_id = (SELECT user_id FROM Registered WHERE username = '" + userName + "')" );
-                                        System.out.println("Data updated successfully");
-                                        break;
-                                    case 7:
-                                        flag3 = false;
-                                        break;
-                                    default:
-                                        System.out.println("Invalid option. Please try again.");
-                                        break;
+                                        System.out.println("Updates Done");
+                                        flag = false;
+                                    }
                                 }
                             }
-                            System.out.println("Updates Done");
-                            flag = false;
                         }
                     }
                 }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        }catch(SQLException e){
-            e.printStackTrace();
         }
-    }
 
     // Method to delete data using multiple sql statements
     //get flight reference number for cancelled flight //query for flight bookings with that flight //query for next available flight closest date to same location //update bookings for all users who had the cancelled flight to the next available one //delete cancelled flight
-    static void deleteData(Statement statement) {
+    static void deleteData(Statement statement, Scanner scanner) {
         //FOR GRADING
         System.out.println("FOR GRADING PURPOSES ONLY, THE PASSWORD FOR ADMINS IS 'admin000'");
         try {
@@ -647,14 +702,21 @@ class jj //find better name
                 int option = 0;
                 while (true) {
                     System.out.print("Please Enter Your Option Number for the Flight to Cancel: ");
-                    option = Integer.parseInt(System.console().readLine());
-                    if (option < 1 || option > i) {
+                    if (!scanner.hasNextInt()) {
                         System.out.println("Invalid option. Please try again.");
+                        scanner.next();
                         continue;
                     }
                     else {
-                        break;
-                    }
+                        option = scanner.nextInt();
+                        if (option < 1 || option > i) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        else {
+                            break;
+                        }
+                    } 
                 }
                 //get the flight number and departure date
                 String flightNumber = "";
@@ -704,13 +766,20 @@ class jj //find better name
                     int option2 = 0;
                     while (true) {
                         System.out.print("Please Enter Your Option Number for the Flight you would like to Book: ");
-                        option2 = Integer.parseInt(System.console().readLine());
-                        if (option2 < 1 || option2 > k) {
+                        if (!scanner.hasNextInt()) {
                             System.out.println("Invalid option. Please try again.");
+                            scanner.next();
                             continue;
                         }
                         else {
-                            break;
+                            option2 = scanner.nextInt();
+                            if (option2 < 1 || option2 > k) {
+                                System.out.println("Invalid option. Please try again.");
+                                continue;
+                            }
+                            else {
+                                break;
+                            }
                         }
                     }
                     String flightNumber2 = "";
