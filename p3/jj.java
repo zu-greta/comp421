@@ -70,7 +70,7 @@ class jj //find better name
                             bookingTotalCosts(statement);
                             break;
                         case 2:
-                            newBooking(statement);
+                            newBooking(con, statement, scanner0);
                             break;
                         case 3:
                             updateData(con, statement, scanner0);
@@ -256,9 +256,10 @@ class jj //find better name
 
     // Method to insert data
     //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) - either registered user or create a temp user
-    static void newBooking(Statement statement) throws SQLException {
+    static void newBooking(Connection con, Statement statement, Scanner scanner) throws SQLException {
         try {
             boolean flag2 = false;
+            int option = 0;
                 while(!flag2) {
                     // get user info
                     // user or registered
@@ -266,51 +267,72 @@ class jj //find better name
                     System.out.println("    1. Yes");
                     System.out.println("    2. No");
                     System.out.print("Please Enter Your Option Number: ");
-                    int option = Integer.parseInt(System.console().readLine());
+                    if (!scanner.hasNextInt()) {
+                        System.out.println("Invalid option. Please try again.");
+                        scanner.next();
+                        continue;
+                    }
+                    else {
+                        option = scanner.nextInt();
+                    }
                     switch (option) {
                         case 1:
                             // Registered user
                             // Get user info from user: username, password
                             // Taking user input for username and password
                             while (true) {
+                                scanner.nextLine(); // Consume the newline character
                                 System.out.print("Enter the username: ");
-                                String userName = System.console().readLine();
+                                String userName = scanner.nextLine();
                                 if (userName.length() > 10) {
                                     System.out.println("Username is too long. Please try again.");
                                     continue;
                                 }
-                                // check if user exists
-                                try (ResultSet resultSet = statement.executeQuery("SELECT username FROM Registered WHERE username = '" + userName + "'")) {
-                                    if (!resultSet.next()) {
-                                        System.out.println("User does not exist or is not registered. Please try again.");
-                                        continue;
-                                    } else {
-                                        // check password
-                                        boolean goodpass = false;
-                                        for (int i = 0; i < 3; i++) {
-                                            System.out.print("Enter the password: ");
-                                            String password = System.console().readLine();
-                                            if (password.length() > 10) {
-                                                System.out.println("Password is too long. Please try again.");
-                                                i--;
-                                                continue;
-                                            }
-                                            try (ResultSet resultSet2 = statement.executeQuery("SELECT password FROM Registered WHERE username = '" + userName + "' AND password = '" + password + "'")) {
-                                                if (!resultSet2.next()) {
-                                                    System.out.println("Password is incorrect. Please try again.");
+                                 //check if user exists
+                                //using prepared statemtne to prevent injection attacks
+                                String userQuery = "SELECT username FROM Registered WHERE username = ?"; 
+                                try (PreparedStatement userPrepStatement = con.prepareStatement(userQuery)) {
+                                    userPrepStatement.setString(1, userName);
+                                    try (ResultSet resultSet = userPrepStatement.executeQuery()) {
+                                        if (!resultSet.next()) {
+                                            System.out.println("User does not exist or is not registered. Please try again.");
+                                            continue;
+                                        }
+                                        else {
+                                            //check password
+                                            boolean goodpass = false;
+                                            for (int i = 0; i < 3; i++) {
+                                                System.out.print("Enter the password: ");
+                                                String password = scanner.nextLine();
+                                                if (password.length() > 10) {
+                                                    System.out.println("Password is too long. Please try again.");
+                                                    i--;
                                                     continue;
-                                                } else {
-                                                    goodpass = true;
-                                                    break;
+                                                }
+                                                String passQuery = "SELECT password FROM Registered WHERE username = ? AND password = ?";
+                                                try (PreparedStatement passPrepStatement = con.prepareStatement(passQuery)) {
+                                                    passPrepStatement.setString(1, userName);
+                                                    passPrepStatement.setString(2, password);
+                                                    try (ResultSet resultSet2 = passPrepStatement.executeQuery()) {
+                                                        if (!resultSet2.next()) {
+                                                            System.out.println("Password is incorrect. Please try again.");
+                                                            continue;
+                                                        }
+                                                        else {
+                                                            goodpass = true;
+                                                            break;
+                                                        }
+                                                    }
                                                 }
                                             }
-                                        }
-                                        if (!goodpass) {
-                                            System.out.println("You have entered the wrong password too many times. Please try again later.");
-                                            return;
+                                            if (!goodpass) {
+                                                System.out.println("You have entered the wrong password too many times. Please try again later.");
+                                                return;
+                                            }
                                         }
                                     }
                                 }
+                                
                             }
                             // Query for user_id using the given username and password
                             // Get user input for booking type
