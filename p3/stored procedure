@@ -336,3 +336,16 @@ A value cannot be assigned to a host variable in the SELECT, VALUES,
 FETCH or assignment statement because the data types are not compatible.  
 SQLSTATE=42806
 */
+
+
+CREATE PROCEDURE procedureTest (
+    IN p_city_name VARCHAR(20),
+    IN p_country VARCHAR(15)
+)
+LANGUAGE SQL
+BEGIN
+
+    INSERT INTO Cities (city_name, country)
+    VALUES (p_city_name, p_country);
+
+END@
