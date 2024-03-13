@@ -19,6 +19,7 @@ CREATE TABLE Registered (
     username VARCHAR(10) UNIQUE NOT NULL, ------------------------------------------------------------add
     password VARCHAR(10) NOT NULL,
     language CHAR(2) DEFAULT 'no' NOT NULL, -- modified from p1
+    totalspent DECIMAL(15, 2) DEFAULT 0.00 NOT NULL, 
     --history CLOB, -------------------------------------------------------------------------------------drop?
     PRIMARY KEY (user_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
@@ -206,195 +207,211 @@ BEGIN
 END
 */
 --Write one stored procedure to perform operations on your project database. It should be nontrivial, illustrating a feature or features such as local variables, multiple SQL statements, loops etc. It should also involve a cursor. The stored procedure should use one or more parameters in a significant way.
-
--- stored procedure that will Create a new relation and load it with values computed from one or more existing relations. using the created tables
--- using CarRentalBooking and Car tables, create a stored procedure called createCarRentalRelation that will create a new table entry in CarRentalBooking table and load it with values computed from the CarRentalBooking table and Car table
--- that will be inserted into the CarRentalBooking table. The new relation will contain the following columns: car_rental_reference_number, user_id, car_license_plate, pickup_location, return_location, pickup_date_time, return_date_time, car_rental_booking_date, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance
--- the data will be loaded from the CarRentalBooking table and Car table and User table
--- the stored procedure will take in the following parameters: user_id, pickup_date_time, return_date_time, budget, number of people, city_name, country
--- the stored procedure will return the car_rental_reference_number, car_license_plate, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance
--- it will do so by using a cursor to loop through the Car table to find a car that fits the budget and number of people and is in the city, country and then calculate the cost and tax and booking fees and total cost and insurance and then insert the values into the CarRentalBooking table
--- generate a unique car_rental_reference_number
-
-CREATE OR REPLACE PROCEDURE createCarRentalRelation (
-    IN p_user_id INT,
-    IN p_pickup_date_time DATETIME,
-    IN p_return_date_time DATETIME,
-    IN p_budget DECIMAL(5, 2),
-    IN p_num_people INT,
-    IN p_city_name VARCHAR(20),
-    IN p_country VARCHAR(15),
-    IN p_pickup_location VARCHAR(50),
-    IN p_return_location VARCHAR(50)
-)
-LANGUAGE SQL
-BEGIN
-    DECLARE car_rental_ref_num INT;
-    DECLARE car_rental_plate VARCHAR(10);
-    DECLARE car_rental_cost DECIMAL(7, 2);
-    DECLARE car_rental_tax DECIMAL(5, 2);
-    DECLARE car_rental_booking_fees DECIMAL(4, 2);
-    DECLARE car_rental_total_cost DECIMAL(7, 2);
-    DECLARE car_rental_insurance VARCHAR(50);
-    DECLARE booked_days INT;
-    DECLARE done INT DEFAULT 0;
-    
-    -- Declare cursor for selecting available cars
-    DECLARE cur CURSOR FOR
-        SELECT car_license_plate, car_daily_cost
-        FROM Car
-        WHERE city_name = p_city_name AND country = p_country
-        AND car_daily_cost <= p_budget --/ TIMESTAMPDIFF(DAY, p_pickup_date_time, p_return_date_time)
-        AND number_of_seats >= p_num_people
-        AND car_license_plate NOT IN (
-            SELECT car_license_plate
-            FROM CarRentalBooking
-            WHERE (pickup_date_time BETWEEN p_pickup_date_time AND p_return_date_time)
-            OR (return_date_time BETWEEN p_pickup_date_time AND p_return_date_time)
-            OR (p_pickup_date_time BETWEEN pickup_date_time AND return_date_time)
-            OR (p_return_date_time BETWEEN pickup_date_time AND return_date_time)
-        );
-
-    -- Declare handler for cursor not found
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
-    
-    -- Generate unique car_rental_reference_number
-    SET car_rental_ref_num = (SELECT MAX(car_rental_reference_number) + 1 FROM CarRentalBooking);
-
-     -- Calculate booked days
-    --SET booked_days = TIMESTAMPDIFF(DAYS, p_pickup_date_time, p_return_date_time);
-    --SET booked_days = TIMESTAMPDIFF(16, p_return_date_time, p_pickup_date_time);
-    SET booked_days = DAYS(p_return_date_time) - DAYS(p_pickup_date_time);
-
-    -- Open cursor
-    OPEN cur;
-
-    -- Loop through available cars
-    carLoop: LOOP
-        FETCH cur INTO car_rental_plate, car_rental_cost;
-
-        -- Exit loop if no more rows
-        IF done THEN
-            LEAVE carLoop;
-        END IF;
-
-        -- Calculate tax and booking fees
-        SET car_rental_cost = car_rental_cost * booked_days;
-        SET car_rental_tax = 0.1 * car_rental_cost;
-        SET car_rental_booking_fees = 0.05 * car_rental_cost;
-
-        -- Calculate total cost
-        SET car_rental_total_cost = car_rental_cost + car_rental_tax + car_rental_booking_fees;
-
-        -- Select insurance for the car
-        SET car_rental_insurance = (
-            SELECT company_policy
-            FROM Car
-            WHERE car_license_plate = car_rental_plate
-            AND city_name = p_city_name
-            AND country = p_country
-            --FETCH FIRST ROW ONLY 
-        );
-        SELECT company_policy
-        INTO car_rental_insurance
-        FROM Car
-        WHERE car_license_plate = car_rental_plate
-            AND city_name = p_city_name
-            AND country = p_country;
-        --FETCH FIRST ROW ONLY;
-
-        -- Insert into CarRentalBooking table
-        INSERT INTO CarRentalBooking (car_rental_reference_number, user_id, car_license_plate, pickup_location, return_location, pickup_date_time, return_date_time, car_rental_booking_date, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance)
-        VALUES (car_rental_ref_num, p_user_id, car_rental_plate, p_pickup_location, p_return_location, p_pickup_date_time, p_return_date_time, CURRENT_DATE, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance);
---CHECK PICKUP LOCATION
-        -- Exit loop after inserting one entry
-        LEAVE carLoop;
-    END LOOP;
-
-    -- Close cursor
-    CLOSE cur;
-
-    -- Return car rental details
-   -- SELECT car_rental_ref_num, car_rental_plate, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance;
-END@
-
-
-CALL createCarRentalRelation(           
-    1,
-    '2024-03-15 10:00:00', 
-    '2024-03-20 10:00:00', 
-    150.00, 
-    4,
-    'Montreal', 
-    'Canada', 
-    'Pierre-Elliot Trudeau International Airport', 
-    'Pierre-Elliot Trudeau International Airport' 
-);
-
-/*
-A value cannot be assigned to a host variable in the SELECT, VALUES, 
-FETCH or assignment statement because the data types are not compatible.  
-SQLSTATE=42806
-*/
-
-
-CREATE PROCEDURE procedureTest (
-    IN p_city_name VARCHAR(20),
-    IN p_country VARCHAR(15)
-)
-LANGUAGE SQL
-BEGIN
-
-    INSERT INTO Cities (city_name, country)
-    VALUES (p_city_name, p_country);
-
-END@
-
 --Write a stored procedure that retrieves flight_ref_number, flight_number, hotel_ref_number, brand_affiliation, car_rental_ref_number, car_license_plate 
 --for a given user_id. The user_id should be a parameter to the stored procedure.
 --The stored procedure should use a cursor to retrieve the data from the FlightBooking, HotelBooking, and CarRentalBooking tables.
 --The stored procedure should return the retrieved data as a result set.
-CREATE PROCEDURE GetUserBookings(IN p_user_id INT)
-BEGIN
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE flight_ref_number INT;
-    DECLARE flight_number VARCHAR(7);
-    DECLARE hotel_ref_number INT;
-    DECLARE hotel_brand_affiliation VARCHAR(15);
-    DECLARE car_rental_ref_number INT;
-    DECLARE car_license_plate VARCHAR(10);
-    
-    DECLARE cur CURSOR FOR 
-        SELECT fb.flight_reference_number, fb.flight_number, hb.hotel_reference_number, hb.brand_affiliation, crb.car_rental_reference_number, crb.car_license_plate
-        FROM FlightBooking fb
-        LEFT JOIN HotelBooking hb ON fb.user_id = hb.user_id
-        LEFT JOIN CarRentalBooking crb ON fb.user_id = crb.user_id
-        WHERE fb.user_id = p_user_id;
-    
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    OPEN cur;
-    CREATE TEMPORARY TABLE TempBookings (
-        flight_ref_number INT,
-        flight_number VARCHAR(7),
-        hotel_ref_number INT,
-        brand_affiliation VARCHAR(15),
-        car_rental_ref_number INT,
-        car_license_plate VARCHAR(10)
-    );
-    
+
+
+--Create a stored procedure that takes in a user_id and returns the total amount of money spent by that user on the website.
+--Use a cursor
+
+--Create the stored procedure in DB2
+--The stored procedure should be called total_spent
+
+
+CREATE PROCEDURE total_spent(IN user_id INT, OUT total DECIMAL(15, 2))
+LANGUAGE SQL
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE flight_cost DECIMAL(15, 2);
+    DECLARE hotel_cost DECIMAL(15, 2);
+    DECLARE car_cost DECIMAL(15, 2);
+    DECLARE flight_booking_cursor CURSOR FOR SELECT flight_total_cost FROM FlightBooking WHERE user_id = user_id;
+    DECLARE hotel_booking_cursor CURSOR FOR SELECT hotel_total_cost FROM HotelBooking WHERE user_id = user_id;
+    DECLARE car_rental_booking_cursor CURSOR FOR SELECT car_rental_total_cost FROM CarRentalBooking WHERE user_id = user_id;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    SET total = 0;
+    OPEN flight_booking_cursor;
+    OPEN hotel_booking_cursor;
+    OPEN car_rental_booking_cursor;
     read_loop: LOOP
-        FETCH cur INTO flight_ref_number, flight_number, hotel_ref_number, hotel_brand_affiliation, car_rental_ref_number, car_license_plate;
+        FETCH flight_booking_cursor INTO flight_cost;
+        FETCH hotel_booking_cursor INTO hotel_cost;
+        FETCH car_rental_booking_cursor INTO car_cost;
         IF done THEN
             LEAVE read_loop;
         END IF;
-        INSERT INTO TempBookings (flight_ref_number, flight_number, hotel_ref_number, brand_affiliation, car_rental_ref_number, car_license_plate)
-        VALUES (flight_ref_number, flight_number, hotel_ref_number, hotel_brand_affiliation, car_rental_ref_number, car_license_plate);
+        SET total = total + flight_cost + hotel_cost + car_cost;
     END LOOP;
-    
-    CLOSE cur;
-
-    SELECT * FROM TempBookings;
-    
-    DROP TEMPORARY TABLE IF EXISTS TempBookings;
+    CLOSE flight_booking_cursor;
+    CLOSE hotel_booking_cursor;
+    CLOSE car_rental_booking_cursor;
 END@
+
+--Call the stored procedure in DB2
+
+--Make a stored procedure that creates a view of all the flights that are available from a given city to another city on a given date using a cursor.
+--The stored procedure should take in the departure city, arrival city, and date as parameters.
+--The stored procedure should return the view name as a result set.
+
+--Make a stored procedure that, given a user_id, returns the total amount of money spent by that user on the website. 
+--The given user_id will be part of Registered, and the total amount of money spent will be the sum of the total cost of all the flight bookings, hotel bookings, and car rental bookings made by the user.
+--Update the column totalspent in Registered with the total amount of money spent by the user.
+--Use a cursor to retrieve the data from the FlightBooking, HotelBooking, and CarRentalBooking tables.
+
+CREATE PROCEDURE total_spent(IN user_id INT, OUT total DECIMAL(15, 2))
+LANGUAGE SQL
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE flight_cost DECIMAL(15, 2);
+    DECLARE hotel_cost DECIMAL(15, 2);
+    DECLARE car_cost DECIMAL(15, 2);
+    DECLARE flight_booking_cursor CURSOR FOR SELECT flight_total_cost FROM FlightBooking WHERE user_id = user_id;
+    DECLARE hotel_booking_cursor CURSOR FOR SELECT hotel_total_cost FROM HotelBooking WHERE user_id = user_id;
+    DECLARE car_rental_booking_cursor CURSOR FOR SELECT car_rental_total_cost FROM CarRentalBooking WHERE user_id = user_id;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    SET total = 0;
+    OPEN flight_booking_cursor;
+    OPEN hotel_booking_cursor;
+    OPEN car_rental_booking_cursor;
+    read_loop: LOOP
+        FETCH flight_booking_cursor INTO flight_cost;
+        FETCH hotel_booking_cursor INTO hotel_cost;
+        FETCH car_rental_booking_cursor INTO car_cost;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        SET total = total + flight_cost + hotel_cost + car_cost;
+    END LOOP;
+    CLOSE flight_booking_cursor;
+    CLOSE hotel_booking_cursor;
+    CLOSE car_rental_booking_cursor;
+
+    UPDATE Registered SET totalspent = total WHERE user_id = user_id;
+
+END@
+
+
+
+
+
+
+--Create the stored procedure in DB2
+--The stored procedure should be called create_flight_view
+
+
+CREATE PROCEDURE create_flight_view(IN departure_city VARCHAR(20), IN departure_country VARCHAR(15), IN arrival_city VARCHAR(20), IN arrival_country VARCHAR(15), IN date DATE, OUT view_name VARCHAR(128))
+LANGUAGE SQL
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE flight_cursor CURSOR FOR SELECT flight_number, departure_date_time, arrival_date_time FROM Flights WHERE departure_city = departure_city AND departure_country = departure_country AND arrival_city = arrival_city AND arrival_country = arrival_country AND departure_date_time = date;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    SET view_name = 'flight_view_' || departure_city || '_' || departure_country || '_' || arrival_city || '_' || arrival_country || '_' || date;
+    SET @sql = 'CREATE VIEW ' || view_name || ' AS SELECT * FROM Flights WHERE departure_city = ' || departure_city || ' AND departure_country = ' || departure_country || ' AND arrival_city = ' || arrival_city || ' AND arrival_country = ' || arrival_country || ' AND departure_date_time = ' || date;
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+    OPEN flight_cursor;
+    read_loop: LOOP
+        FETCH flight_cursor INTO flight_number, departure_date_time, arrival_date_time;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+    END LOOP;
+    CLOSE flight_cursor;
+END@
+
+
+CREATE PROCEDURE test10(IN user_id INT)
+LANGUAGE SQL
+BEGIN
+    DECLARE total DECIMAL(15, 2);
+    SET total = 9999.99;
+
+    UPDATE Registered SET totalspent = total WHERE user_id = user_id;
+
+END@
+
+
+CREATE PROCEDURE userSpendings(IN p_user_id INT)
+LANGUAGE SQL
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE flight_cost DECIMAL(15, 2);
+    DECLARE total DECIMAL(15, 2);
+    --SET total = 0;
+
+    
+    DECLARE flight_booking_cursor CURSOR FOR SELECT flight_total_cost FROM FlightBooking WHERE user_id = p_user_id; 
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    SET total = 0;
+    OPEN flight_booking_cursor;
+    read_loop: LOOP
+        FETCH flight_booking_cursor INTO flight_cost;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        SET total = total + flight_cost;
+    END LOOP;
+    CLOSE flight_booking_cursor;
+
+    UPDATE Registered SET totalspent = total WHERE user_id = p_user_id;
+
+END@
+
+
+CREATE PROCEDURE userSpendings(IN p_user_id INT)
+LANGUAGE SQL
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE flight_cost DECIMAL(15, 2);
+    DECLARE hotel_cost DECIMAL(15, 2);
+    DECLARE car_cost DECIMAL(15, 2);
+    DECLARE total DECIMAL(15, 2);
+    
+    DECLARE flight_booking_cursor CURSOR FOR SELECT flight_total_cost FROM FlightBooking WHERE user_id = p_user_id; 
+    DECLARE hotel_booking_cursor CURSOR FOR SELECT hotel_total_cost FROM HotelBooking WHERE user_id = p_user_id;
+    DECLARE car_rental_booking_cursor CURSOR FOR SELECT car_rental_total_cost FROM CarRentalBooking WHERE user_id = p_user_id;
+    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    SET total = 0;
+    OPEN flight_booking_cursor;
+    OPEN hotel_booking_cursor;
+    OPEN car_rental_booking_cursor;
+    WHILE done = 0 DO
+        FETCH flight_booking_cursor INTO flight_cost;
+        FETCH hotel_booking_cursor INTO hotel_cost;
+        FETCH car_rental_booking_cursor INTO car_cost;
+        SET total = total + flight_cost + hotel_cost + car_cost;
+    END WHILE;
+    CLOSE flight_booking_cursor;
+    CLOSE hotel_booking_cursor;
+    CLOSE car_rental_booking_cursor;
+
+    UPDATE Registered SET totalspent = total WHERE user_id = p_user_id;
+
+END@
+
+CREATE PROCEDURE nameeee (IN param1 INT, IN param2 INT) LANGUAGE SQL
+BEGIN
+  DECLARE var1 INT;
+  DECLARE var2 INT;
+  SET var1 = param1;
+  SET var2 = param2;
+  SELECT var1, var2;
+
+  DECLARE cur CURSOR FOR
+    SELECT * FROM mytable;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    OPEN cur;
+    FETCH cur INTO var1, var2;
+    WHILE done = 0 DO
+      SELECT var1, var2;
+      FETCH cur INTO var1, var2;
+    END WHILE;
+    CLOSE cur;
+END
