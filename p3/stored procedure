@@ -175,7 +175,7 @@ CREATE TABLE CarRentalBooking (
     car_rental_tax DECIMAL(5, 2) NOT NULL,
     car_rental_booking_fees DECIMAL(4, 2) NOT NULL,
     car_rental_total_cost DECIMAL(7, 2) NOT NULL,
-    insurance VARCHAR(30) NOT NULL, 
+    insurance VARCHAR(50) NOT NULL, 
     PRIMARY KEY (car_rental_reference_number), 
     FOREIGN KEY (car_license_plate) REFERENCES Car(car_license_plate),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
@@ -216,7 +216,7 @@ END
 -- it will do so by using a cursor to loop through the Car table to find a car that fits the budget and number of people and is in the city, country and then calculate the cost and tax and booking fees and total cost and insurance and then insert the values into the CarRentalBooking table
 -- generate a unique car_rental_reference_number
 
-CREATE PROCEDURE createCarRentalRelation (
+CREATE OR REPLACE PROCEDURE createCarRentalRelation (
     IN p_user_id INT,
     IN p_pickup_date_time DATETIME,
     IN p_return_date_time DATETIME,

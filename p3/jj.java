@@ -529,7 +529,7 @@ class jj //find better name
                                                     System.out.println("Choose the new language: ");
                                                     System.out.println("    1. English");
                                                     System.out.println("    2. French");
-                                                    System.out.println("Please Enter Your Option Number: ");
+                                                    System.out.print("Please Enter Your Option Number: ");
                                                     if (!scanner.hasNextInt()) {
                                                         System.out.println("Invalid option. Please try again.");
                                                         scanner.next();

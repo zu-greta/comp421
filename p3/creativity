@@ -13,3 +13,23 @@ This trigger will activate after an update operation on the room_cost or hotel_t
 The purpose of this trigger is to maintain data consistency and accuracy by automatically updating the total cost whenever relevant fields are modified, ensuring that users always see the correct total cost for their hotel bookings.
 */
 
+
+/*
+trigger to update the number of available seats of each fare class in the flights table after a new booking is made
+the purpose of this trigger is to automatically update the number of available seats for each fare class in the flights table after a new booking is made, ensuring that the availability information is always up-to-date and accurate.
+*/
+CREATE OR REPLACE TRIGGER UpdateAvailableSeats
+AFTER INSERT ON FlightBooking
+REFERENCING NEW AS NewRow
+FOR EACH ROW
+BEGIN ATOMIC
+    -- Update the number of available seats for the fare class of the booked flight
+    UPDATE Flights
+    SET economy_seats = economy_seats - CASE WHEN NewRow.fare_class = 'Economy' THEN 1 ELSE 0 END,
+        premium_economy_seats = premium_economy_seats - CASE WHEN NewRow.fare_class = 'Premium Economy' THEN 1 ELSE 0 END,
+        business_seats = business_seats - CASE WHEN NewRow.fare_class = 'Business' THEN 1 ELSE 0 END,
+        first_class_seats = first_class_seats - CASE WHEN NewRow.fare_class = 'First Class' THEN 1 ELSE 0 END
+    WHERE flight_number = NewRow.flight_number
+    AND departure_date_time = NewRow.departure_date_time;
+END@
+
