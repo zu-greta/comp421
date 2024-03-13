@@ -628,6 +628,18 @@ class jj //find better name
                             System.out.println("Invalid option. Please try again.");
                             continue;
                         }
+                        //check if there are flights on that day using the database
+                        String date = year + "-" + month + "-" + day;
+                        String dateQuery = "SELECT departure_date_time FROM Flights WHERE departure_date_time = ?";
+                        try (PreparedStatement datePrepStatement = con.prepareStatement(dateQuery)) {
+                            datePrepStatement.setString(1, date);
+                            try (ResultSet resultSet = datePrepStatement.executeQuery()) {
+                                if (!resultSet.next()) {
+                                    System.out.println("There are no flights on that day. Please try again.");
+                                    continue;
+                                }
+                            }
+                        }
                         //select a departure city
                         scanner.nextLine(); // Consume the newline character
                         //fetch cities and country from database (flights table)
