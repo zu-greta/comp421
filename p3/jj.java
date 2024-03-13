@@ -4,6 +4,7 @@ import java.sql.* ;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Random;
 
 class jj //find better name
 {
@@ -260,6 +261,8 @@ class jj //find better name
         try {
             boolean flag2 = false;
             int option = 0;
+            int booking = 0;
+            int userID = 0;
                 while(!flag2) {
                     // get user info
                     // user or registered
@@ -301,9 +304,10 @@ class jj //find better name
                                         else {
                                             //check password
                                             boolean goodpass = false;
+                                            String password = "";
                                             for (int i = 0; i < 3; i++) {
                                                 System.out.print("Enter the password: ");
-                                                String password = scanner.nextLine();
+                                                password = scanner.nextLine();
                                                 if (password.length() > 10) {
                                                     System.out.println("Password is too long. Please try again.");
                                                     i--;
@@ -329,23 +333,112 @@ class jj //find better name
                                                 System.out.println("You have entered the wrong password too many times. Please try again later.");
                                                 return;
                                             }
+                                            // Query for user_id using the given username and password
+                                            userID = 0;
+                                            String userQuery2 = "SELECT user_id FROM Registered WHERE username = ? AND password = ?";
+                                            try (PreparedStatement userPrepStatement2 = con.prepareStatement(userQuery2)) {
+                                                userPrepStatement2.setString(1, userName);
+                                                userPrepStatement2.setString(2, password);
+                                                try (ResultSet resultSet3 = userPrepStatement2.executeQuery()) {
+                                                    while (resultSet3.next()) {
+                                                        userID = resultSet3.getInt("user_id");
+                                                    }
+                                                }
+                                            }
+                                            // Get user input for booking type
+                                            booking = bookanything(con, statement, userID, scanner);
+                                            flag2 = true;
+                                            break;
                                         }
                                     }
-                                }
-                                
+                                }                        
                             }
-                            // Query for user_id using the given username and password
-                            // Get user input for booking type
-                            //bookanything(statement);
-                            //flag2 = true;
-                            //break;
+                            break;
                         case 2:
                             // New user
                             // Get user info from user: name, email, phone number, address, credit card information, language
+                            scanner.nextLine(); // Consume the newline character
+                            System.out.println("Create a new user: ");
+                            String name="";
+                            while(true) {
+                                // get user input for name
+                                System.out.print("Enter your name: ");
+                                name = scanner.nextLine();
+                                if (name.length() > 25) {
+                                    System.out.println("Name is too long. Please try again.");
+                                    continue;
+                                }
+                                else {
+                                    break;
+                                }
+                            }
+                            String email="";
+                            while(true) {
+                                // get user input for email
+                                System.out.print("Enter your email: ");
+                                email = scanner.nextLine();
+                                if (email.length() > 40) {
+                                    System.out.println("Email is too long. Please try again.");
+                                    continue;
+                                }
+                                else {
+                                    break;
+                                }
+                            }
+                            String phoneNumber="";
+                            while(true) {
+                                // get user input for phone number
+                                System.out.print("Enter your phone number: ");
+                                phoneNumber = scanner.nextLine();
+                                if (phoneNumber.length() > 22) {
+                                    System.out.println("Phone number is too long. Please try again.");
+                                    continue;
+                                }
+                                else {
+                                    break;
+                                }
+                            }
+                            String address="";
+                            while(true) {
+                                // get user input for address
+                                System.out.print("Enter your address: ");
+                                address = scanner.nextLine();
+                                if (address.length() > 50) {
+                                    System.out.println("Address is too long. Please try again.");
+                                    continue;
+                                }
+                                else {
+                                    break;
+                                }
+                            }
+                            String creditCardInfo="";
+                            while (true) {
+                                // get user input for credit card information
+                                System.out.print("Enter your credit card information: ");
+                                creditCardInfo = scanner.nextLine();
+                                if (creditCardInfo.length() > 36) {
+                                    System.out.println("Credit card information is too long. Please try again.");
+                                    continue;
+                                }
+                                else {
+                                    break;
+                                }
+                            }
                             // create a unique user_id
+                            userID = statement.executeUpdate("SELECT MAX(user_id) FROM Users") + 1;
                             // Insert into Users table
+                            String insertUserQuery = "INSERT INTO Users VALUES (?, ?, ?, ?, ?, ?)";
+                            try (PreparedStatement insertUserPrepStatement = con.prepareStatement(insertUserQuery)) {
+                                insertUserPrepStatement.setInt(1, userID);
+                                insertUserPrepStatement.setString(2, name);
+                                insertUserPrepStatement.setString(3, email);
+                                insertUserPrepStatement.setString(4, phoneNumber);
+                                insertUserPrepStatement.setString(5, address);
+                                insertUserPrepStatement.setString(6, creditCardInfo);
+                                insertUserPrepStatement.executeUpdate();
+                            }
                             // Get user info from user: booking type
-                            bookanything(statement);
+                            booking = bookanything(con, statement, userID, scanner);
                             flag2 = true;
                             break;
                         default:
@@ -355,74 +448,468 @@ class jj //find better name
                 }
                 if (flag2) {
                     // Query for booking info
-                    try (ResultSet resultSet = statement.executeQuery("SELECT * FROM TableName WHERE condition")) {
-                        // Process and display query results
-                        while (resultSet.next()) {
-                            // Process each row of the result set
-                            // Example: String data = resultSet.getString("columnName");
-                        }
-                        // Print booking success message
-                        System.out.println("Booking successful");
+                    String bookingQuery = ""; 
+                    switch (booking) {
+                        case 1:
+                            bookingQuery = "SELECT * FROM FlightBooking WHERE user_id = ?";
+                            try (PreparedStatement bookingPrepStatement = con.prepareStatement(bookingQuery)) {
+                                bookingPrepStatement.setInt(1, userID);
+                                // Process and display query results
+                                ResultSet resultSet = bookingPrepStatement.executeQuery();
+                                while (resultSet.next()){
+                                    // print booking info formatted into a table
+                                    int flightReferenceNumber = resultSet.getInt("flight_reference_number");
+                                    int user_id = resultSet.getInt("user_id");
+                                    String passengerNames = resultSet.getString("passenger_names");
+                                    String flightNumber = resultSet.getString("flight_number");
+                                    String departureDateTime = resultSet.getString("departure_date_time");
+                                    double flightTotalCost = resultSet.getDouble("flight_total_cost");
+                                    String fareClass = resultSet.getString("fare_class");
+                                    String seatNumbers = resultSet.getString("seat_numbers");
+                                    double planeTicketCost = resultSet.getDouble("plane_ticket_cost");
+                                    double planeTicketSurcharge = resultSet.getDouble("plane_ticket_surcharge");
+                                    double planeTicketTax = resultSet.getDouble("plane_ticket_tax");
+                                    double flightBookingFees = resultSet.getDouble("flight_booking_fees");
+                                    String flightBookingDate = resultSet.getString("flight_booking_date");
+                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+---------------------+");
+                                    System.out.println("| Flight Reference No. | User ID              | Passenger Names      | Flight Number        | Departure Date Time  | Flight Total Cost    | Fare Class           | Seat Numbers         | Plane Ticket Cost    | Plane Ticket Surcharge| Plane Ticket Tax     | Flight Booking Fees | Flight Booking Date |");
+                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+---------------------+");
+                                    System.out.printf("| %-20d | %-20d | %-20s | %-20s | %-20s | %-20.2f | %-20s | %-20s | %-20.2f | %-20.2f | %-20.2f | %-20.2f | %-20s |\n", flightReferenceNumber, user_id, passengerNames, flightNumber, departureDateTime, flightTotalCost, fareClass, seatNumbers, planeTicketCost, planeTicketSurcharge, planeTicketTax, flightBookingFees, flightBookingDate);
+                                }
+                                // Print booking success message
+                                System.out.println("Booking successful");
+                            }
+                            break;
+                        case 2:
+                            bookingQuery = "SELECT * FROM HotelBooking WHERE user_id = ?";
+                            try (PreparedStatement bookingPrepStatement = con.prepareStatement(bookingQuery)) {
+                                bookingPrepStatement.setInt(1, userID);
+                                // Process and display query results
+                                ResultSet resultSet = bookingPrepStatement.executeQuery();
+                                while (resultSet.next()){
+                                    // print booking info formatted into a table
+                                    int hotelReferenceNumber = resultSet.getInt("hotel_reference_number");
+                                    int user_id = resultSet.getInt("user_id");
+                                    int roomNumber = resultSet.getInt("room_number");
+                                    String brandAffiliation = resultSet.getString("brand_affiliation");
+                                    String hotelAddress = resultSet.getString("hotel_address");
+                                    String checkinDate = resultSet.getString("checkin_date");
+                                    String checkoutDate = resultSet.getString("checkout_date");
+                                    double hotelTotalCost = resultSet.getDouble("hotel_total_cost");
+                                    double roomCost = resultSet.getDouble("room_cost");
+                                    double hotelTax = resultSet.getDouble("hotel_tax");
+                                    double hotelBookingFees = resultSet.getDouble("hotel_booking_fees");
+                                    String hotelBookingDate = resultSet.getString("hotel_booking_date");
+                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
+                                    System.out.println("| Hotel Reference No.  | User ID              | Room Number          | Brand Affiliation    | Hotel Address        | Checkin Date         | Checkout Date        | Hotel Total Cost     | Room Cost            | Hotel Tax            | Hotel Booking Fees    | Hotel Booking Date  |");
+                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
+                                    System.out.printf("| %-20d | %-20d | %-20d | %-20s | %-20s | %-20s | %-20s | %-20.2f | %-20.2f | %-20.2f | %-20.2f | %-20s |\n", hotelReferenceNumber, user_id, roomNumber, brandAffiliation, hotelAddress, checkinDate, checkoutDate, hotelTotalCost, roomCost, hotelTax, hotelBookingFees, hotelBookingDate);
+                                }
+                                // Print booking success message
+                                System.out.println("Booking successful");
+                            }
+                            break;
+                        case 3:
+                            bookingQuery = "SELECT * FROM CarRentalBooking WHERE user_id = ?";
+                            try (PreparedStatement bookingPrepStatement = con.prepareStatement(bookingQuery)) {
+                                bookingPrepStatement.setInt(1, userID);
+                                // Process and display query results
+                                ResultSet resultSet = bookingPrepStatement.executeQuery();
+                                while (resultSet.next()){
+                                    // print booking info formatted into a table
+                                    int carRentalReferenceNumber = resultSet.getInt("car_rental_reference_number");
+                                    int user_id = resultSet.getInt("user_id");
+                                    String carLicensePlate = resultSet.getString("car_license_plate");
+                                    String pickupLocation = resultSet.getString("pickup_location");
+                                    String returnLocation = resultSet.getString("return_location");
+                                    String pickupDateTime = resultSet.getString("pickup_date_time");
+                                    String returnDateTime = resultSet.getString("return_date_time");
+                                    String carRentalBookingDate = resultSet.getString("car_rental_booking_date");
+                                    double carRentalCost = resultSet.getDouble("car_rental_cost");
+                                    double carRentalTax = resultSet.getDouble("car_rental_tax");
+                                    double carRentalBookingFees = resultSet.getDouble("car_rental_booking_fees");
+                                    double carRentalTotalCost = resultSet.getDouble("car_rental_total_cost");
+                                    String insurance = resultSet.getString("insurance");
+                                    System.out.println("+--------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------+");
+                                    System.out.println("| Car Rental Reference No. | User ID              | Car License Plate    | Pickup Location      | Return Location      | Pickup Date Time     | Return Date Time     | Car Rental Booking Date | Car Rental Cost      | Car Rental Tax       | Car Rental Booking Fees | Car Rental Total Cost | Insurance            |");
+                                    System.out.println("+--------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------+");
+                                    System.out.printf("| %-25d | %-20d | %-20s | %-20s | %-20s | %-20s | %-20s | %-20s | %-20.2f | %-20.2f | %-20.2f | %-20.2f | %-20s |\n", carRentalReferenceNumber, user_id, carLicensePlate, pickupLocation, returnLocation, pickupDateTime, returnDateTime, carRentalBookingDate, carRentalCost, carRentalTax, carRentalBookingFees, carRentalTotalCost, insurance);
+                                }
+                                // Print booking success message
+                                System.out.println("Booking successful");
+                            }
+                            break;
                     }
-                }
-            }   
-            catch (SQLException e) {
-                e.printStackTrace(); 
+                } 
+        }
+        catch (SQLException e) {
+            e.printStackTrace(); 
         }
     }
     //helper to book
-    static void bookanything(Statement statement) throws SQLException {
+    static int bookanything(Connection con, Statement statement, int userID, Scanner scanner) throws SQLException {
         // Get user input for booking type
-        // Taking user input for booking type
-        System.out.println("Choose the booking type: ");
-        System.out.println("    1. Flight");
-        System.out.println("    2. Hotel");
-        System.out.println("    3. Car Rental");
-        System.out.print("Please Enter Your Option Number: ");
-        int bookingType = Integer.parseInt(System.console().readLine());
-        switch (bookingType) {
-            case 1:
-                // Flight booking
-                // Get flight info from user: departure date time, airline, fare class, departure city and country, arrival city and country, departure date
-                // Query for flight options using the given info
-                // Display flight options as a sub menu to choose from
-                // Get user input for flight option
-                // Book flight by getting user input for booking info (user ID, passenger names) 
-                // and other info from the flight selected (flight number, departure date time, flight cost given fare class), 
-                // and calculate the costs (flight total cost, plane ticket cost, plane ticket surcharge, plane ticket tax, flight booking fees, flight booking date),
-                // and generate a flight reference number, 
-                // and insert into FlightBooking table
-                break;
-            case 2:
-                // Hotel booking
-                // Get hotel info from user: check-in date, check-out date, city, country, number of rooms, number of guests
-                // Query for hotel options using the given info
-                // Display hotel options as a sub menu to choose from
-                // Get user input for hotel option
-                // Display room options as a sub menu to choose from
-                // Get user input for room option
-                // Book hotel room by getting user input for booking info (user ID, checkin date, chekout date)
-                // and info from room selected (room number),
-                // and info from hotel selected (brand affiliation, hotel address)
-                // calculate costs (hotel toatal cost, hotel tax, hotel booking fees, hotel booking date),
-                // generate a hotel reference number,
-                // and insert into HotelBooking table
-                break;
-            case 3:
-                // Car rental booking
-                // Get car rental info from user: pickup date time, return date time, pickup location, return location
-                // Query for car rental options using the given info
-                // Display car rental options as a sub menu to choose from
-                // Get user input for car rental option
-                // Book car rental by getting user input for booking info (user ID, pickup date time, return date time, pickup location, return location)
-                // and info from car rental selected (car ar license plate, insurance)
-                // calculate costs (car rental total cost, car rental tax, car rental booking fees, car rental booking date),
-                // generate a car rental reference number,
-                // and insert into CarRentalBooking table
-                break;
-            default:
+        while(true) {
+            // Taking user input for booking type
+            System.out.println("Choose the booking type: ");
+            System.out.println("    1. Flight");
+            System.out.println("    2. Hotel");
+            System.out.println("    3. Car Rental");
+            System.out.print("Please Enter Your Option Number: ");
+            if (!scanner.hasNextInt()) {
                 System.out.println("Invalid option. Please try again.");
-                break;
+                scanner.next();
+                continue;
+            }
+            int bookingType = scanner.nextInt();
+            switch (bookingType) {
+                case 1:
+                    // Flight booking
+                    String fareClass = "";
+                    int year = 0;
+                    int month = 0;
+                    int day = 0;
+                    String departureCity ="";
+                    String departureCountry = "";
+                    String arrivalCity = "";
+                    String arrivalCountry = "";
+                    String airline = "";
+                    // Get flight info from user: departure date, airline, fare class, departure city and country, arrival city and country
+                    while(true){
+                        //select a year
+                        System.out.println("Choose the year: ");
+                        System.out.println("    1. 2024");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        year = scanner.nextInt();
+                        if (year != 2024) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a month
+                        System.out.println("Choose the month: ");
+                        System.out.println("    1. January");
+                        System.out.println("    2. February");
+                        System.out.println("    3. March");
+                        System.out.println("    4. April");
+                        System.out.println("    5. May");
+                        System.out.println("    6. June");
+                        System.out.println("    7. July");
+                        System.out.println("    8. August");
+                        System.out.println("    9. September");
+                        System.out.println("    10. October");
+                        System.out.println("    11. November");
+                        System.out.println("    12. December");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        month = scanner.nextInt();
+                        if (month < 1 || month > 12) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a day
+                        System.out.println("Choose the day: ");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        day = scanner.nextInt();
+                        if (day < 1 || day > 31) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a departure city
+                        scanner.nextLine(); // Consume the newline character
+                        //fetch cities and country from database (flights table)
+                        String cityQuery = "SELECT DISTINCT departure_city, departure_country FROM Flights";
+                        try (PreparedStatement cityPrepStatement = con.prepareStatement(cityQuery)) {
+                            try (ResultSet resultSet = cityPrepStatement.executeQuery()) {
+                                List<String> cities = new ArrayList<>();
+                                List<String> countries = new ArrayList<>();
+                                while (resultSet.next()) {
+                                    cities.add(resultSet.getString("departure_city"));
+                                    countries.add(resultSet.getString("departure_country"));
+                                }
+                                System.out.println("Choose the departure city: ");
+                                for (int i = 0; i < cities.size(); i++) {
+                                    System.out.println("    " + (i+1) + ". " + cities.get(i) + ", " + countries.get(i));
+                                }
+                                System.out.print("Please Enter Your Option Number: ");
+                                if (!scanner.hasNextInt()) {
+                                    System.out.println("Invalid option. Please try again.");
+                                    scanner.next();
+                                    continue;
+                                }
+                                int departureCityOption = scanner.nextInt();
+                                if (departureCityOption < 1 || departureCityOption > cities.size()) {
+                                    System.out.println("Invalid option. Please try again.");
+                                    continue;
+                                }
+                                departureCity = cities.get(departureCityOption-1);
+                                departureCountry = countries.get(departureCityOption-1);
+                                //select an arrival city
+                                //fetch cities and country from database (flights table)
+                                String cityQuery2 = "SELECT DISTINCT arrival_city, arrival_country FROM Flights WHERE departure_city = ? AND departure_country = ?";
+                                try (PreparedStatement cityPrepStatement2 = con.prepareStatement(cityQuery2)) {
+                                    cityPrepStatement2.setString(1, departureCity);
+                                    cityPrepStatement2.setString(2, departureCountry);
+                                    try (ResultSet resultSet2 = cityPrepStatement2.executeQuery()) {
+                                        List<String> arrivalCities = new ArrayList<>();
+                                        List<String> arrivalCountries = new ArrayList<>();
+                                        while (resultSet2.next()) {
+                                            arrivalCities.add(resultSet2.getString("arrival_city"));
+                                            arrivalCountries.add(resultSet2.getString("arrival_country"));
+                                        }
+                                        System.out.println("Choose the arrival city: ");
+                                        for (int i = 0; i < arrivalCities.size(); i++) {
+                                            System.out.println("    " + (i+1) + ". " + arrivalCities.get(i) + ", " + arrivalCountries.get(i));
+                                        }
+                                        System.out.print("Please Enter Your Option Number: ");
+                                        if (!scanner.hasNextInt()) {
+                                            System.out.println("Invalid option. Please try again.");
+                                            scanner.next();
+                                            continue;
+                                        }
+                                        int arrivalCityOption = scanner.nextInt();
+                                        if (arrivalCityOption < 1 || arrivalCityOption > arrivalCities.size()) {
+                                            System.out.println("Invalid option. Please try again.");
+                                            continue;
+                                        }
+                                        arrivalCity = arrivalCities.get(arrivalCityOption-1);
+                                        arrivalCountry = arrivalCountries.get(arrivalCityOption-1);
+                                        //select an airline
+                                        //fetch airlines from database (flights table)
+                                        String airlineQuery = "SELECT DISTINCT airline FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ?";
+                                        try (PreparedStatement airlinePrepStatement = con.prepareStatement(airlineQuery)) {
+                                            airlinePrepStatement.setString(1, departureCity);
+                                            airlinePrepStatement.setString(2, departureCountry);
+                                            airlinePrepStatement.setString(3, arrivalCity);
+                                            airlinePrepStatement.setString(4, arrivalCountry);
+                                            try (ResultSet resultSet3 = airlinePrepStatement.executeQuery()) {
+                                                List<String> airlines = new ArrayList<>();
+                                                while (resultSet3.next()) {
+                                                    airlines.add(resultSet3.getString("airline"));
+                                                }
+                                                System.out.println("Choose the airline: ");
+                                                for (int i = 0; i < airlines.size(); i++) {
+                                                    System.out.println("    " + (i+1) + ". " + airlines.get(i));
+                                                }
+                                                System.out.print("Please Enter Your Option Number: ");
+                                                if (!scanner.hasNextInt()) {
+                                                    System.out.println("Invalid option. Please try again.");
+                                                    scanner.next();
+                                                    continue;
+                                                }
+                                                int airlineOption = scanner.nextInt();
+                                                if (airlineOption < 1 || airlineOption > airlines.size()) {
+                                                    System.out.println("Invalid option. Please try again.");
+                                                    continue;
+                                                }
+                                                airline = airlines.get(airlineOption-1);
+                                                //select a fare class
+                                                //fetch fare classes from database (flights table)
+                                                String fareClassQuery = "SELECT DISTINCT fare_class FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ?";
+                                                try (PreparedStatement fareClassPrepStatement = con.prepareStatement(fareClassQuery)) {
+                                                    fareClassPrepStatement.setString(1, departureCity);
+                                                    fareClassPrepStatement.setString(2, departureCountry);
+                                                    fareClassPrepStatement.setString(3, arrivalCity);
+                                                    fareClassPrepStatement.setString(4, arrivalCountry);
+                                                    fareClassPrepStatement.setString(5, airline);
+                                                    try (ResultSet resultSet4 = fareClassPrepStatement.executeQuery()) {
+                                                        List<String> fareClasses = new ArrayList<>();
+                                                        while (resultSet4.next()) {
+                                                            fareClasses.add(resultSet4.getString("fare_class"));
+                                                        }
+                                                        System.out.println("Choose the fare class: ");
+                                                        for (int i = 0; i < fareClasses.size(); i++) {
+                                                            System.out.println("    " + (i+1) + ". " + fareClasses.get(i));
+                                                        }
+                                                        System.out.print("Please Enter Your Option Number: ");
+                                                        if (!scanner.hasNextInt()) {
+                                                            System.out.println("Invalid option. Please try again.");
+                                                            scanner.next();
+                                                            continue;
+                                                        }
+                                                        int fareClassOption = scanner.nextInt();
+                                                        if (fareClassOption < 1 || fareClassOption > fareClasses.size()) {
+                                                            System.out.println("Invalid option. Please try again.");
+                                                            continue;
+                                                        }
+                                                        fareClass = fareClasses.get(fareClassOption-1);
+                                                        break;
+                                                        // Query for flight options using the given info
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }                                                       
+                    }
+                    // Query for flight options using the given info
+                    // Display flight options as a sub menu to choose from
+                    String flightQuery = "";
+                    String fare="";
+                    switch (fareClass) {
+                        case "Economy":
+                            // Display economy class flight options
+                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND economy_seats > 0";
+                            fare = "economy_cost";
+                            break;
+                        case "Business":
+                            // Display business class flight options
+                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND business_seats > 0";
+                            fare = "business_cost";
+                            break;
+                        case "First Class":
+                            // Display first class flight options
+                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND first_class_seats > 0";
+                            fare = "first_class_cost";
+                            break;
+                        case "Premium Economy":
+                            // Display premium economy class flight options
+                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND premium_economy_seats > 0";
+                            fare = "premium_economy_cost";
+                            break;
+                    }
+                    try (PreparedStatement flightPrepStatement = con.prepareStatement(flightQuery)) {
+                        flightPrepStatement.setString(1, departureCity);
+                        flightPrepStatement.setString(2, departureCountry);
+                        flightPrepStatement.setString(3, arrivalCity);
+                        flightPrepStatement.setString(4, arrivalCountry);
+                        flightPrepStatement.setString(5, airline);
+                        flightPrepStatement.setString(6, fareClass);
+                        // Process and display query results as a list
+                        try (ResultSet resultSet = flightPrepStatement.executeQuery()) {
+                            List<String> flightNumbers = new ArrayList<>();
+                            List<String> departureDateTimes = new ArrayList<>();
+                            List<Double> flightCosts = new ArrayList<>();
+                            System.out.println("+-----+----------------------+----------------------+-----------------------+");
+                            System.out.println("|     | Flight Number        | Departure Date Time  | Flight Cost           |");
+                            System.out.println("+-----+----------------------+----------------------+-----------------------+");
+                            int i = 0;
+                            while (resultSet.next()) {
+                                i++; // Increment the counter
+                                String flightNumber = resultSet.getString("flight_number");
+                                String departureDateTime = resultSet.getString("departure_date_time");
+                                double flightCost = resultSet.getDouble(fare);
+                                flightNumbers.add(flightNumber);
+                                departureDateTimes.add(departureDateTime);
+                                flightCosts.add(flightCost);
+                                System.out.printf("| %-5s | %-20s | %-20s | %-20.2f |\n", i, flightNumber, departureDateTime, flightCost);
+                            }
+                            System.out.println("+-----+----------------------+----------------------+----------------------+");
+                            // Get user input for flight option
+                            System.out.print("Please Enter Your Option Number: ");
+                            if (!scanner.hasNextInt()) {
+                                System.out.println("Invalid option. Please try again.");
+                                scanner.next();
+                                continue;
+                            }
+                            int flightOption = scanner.nextInt();
+                            if (flightOption < 1 || flightOption > flightNumbers.size()) {
+                                System.out.println("Invalid option. Please try again.");
+                                continue;
+                            }
+                            // Book flight by getting user input for booking info (user ID, passenger names) 
+                            //passenger names
+                            scanner.nextLine(); // Consume the newline character
+                            System.out.print("Enter the passenger names (format: name, name2...): ");
+                            String passengerNames = scanner.nextLine();
+                            if (passengerNames.length() > 150) {
+                                System.out.println("Passenger names are too long. Please try again.");
+                                continue;
+                            }
+                            // and other info from the flight selected (flight number, departure date time, flight cost given fare class), 
+                            String flight_number = flightNumbers.get(flightOption-1);
+                            String departure_date_time = departureDateTimes.get(flightOption-1);
+                            double flight_ticket_cost = flightCosts.get(flightOption-1);
+                            // calculate costs (flight total cost, plane ticket cost, plane ticket surcharge, plane ticket tax, flight booking fees, flight booking date),
+                            double plane_ticket_surcharge = 0.05 * flight_ticket_cost;
+                            double plane_ticket_tax = 0.15 * flight_ticket_cost;
+                            double flight_booking_fees = 15;
+                            double flight_total_cost = flight_ticket_cost + plane_ticket_surcharge + plane_ticket_tax + flight_booking_fees;
+                            String flight_booking_date = java.time.LocalDate.now().toString();
+                            // and generate a flight reference number, 
+                            int flightReferenceNumber = statement.executeUpdate("SELECT MAX(flight_reference_number) FROM FlightBooking") + 1;
+                            // and insert into FlightBooking table
+                            String insertFlightQuery = "INSERT INTO FlightBooking VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                            Random rand = new Random();
+                            int seatnum = rand.nextInt(60);
+                            ArrayList<String> seats = new ArrayList<>();
+                            seats.add("A");
+                            seats.add("B");
+                            seats.add("C");
+                            seats.add("D");
+                            seats.add("E");
+                            seats.add("F");
+                            seats.add("G");
+                            seats.add("H");
+                            seats.add("J");
+                            seats.add("K");
+                            int seatletter = rand.nextInt(seats.size());
+                            String seat = Integer.toString(seatnum) + seats.get(seatletter);
+                            try (PreparedStatement insertFlightPrepStatement = con.prepareStatement(insertFlightQuery)) {
+                                insertFlightPrepStatement.setInt(1, flightReferenceNumber);
+                                insertFlightPrepStatement.setInt(2, userID);
+                                insertFlightPrepStatement.setString(3, passengerNames);
+                                insertFlightPrepStatement.setString(4, flight_number);
+                                insertFlightPrepStatement.setString(5, departure_date_time);
+                                insertFlightPrepStatement.setDouble(6, flight_total_cost);
+                                insertFlightPrepStatement.setString(7, fareClass);
+                                insertFlightPrepStatement.setString(8, seat);
+                                insertFlightPrepStatement.setDouble(9, flight_ticket_cost);
+                                insertFlightPrepStatement.setDouble(10, plane_ticket_surcharge);
+                                insertFlightPrepStatement.setDouble(11, plane_ticket_tax);
+                                insertFlightPrepStatement.setDouble(12, flight_booking_fees);
+                                insertFlightPrepStatement.setString(13, flight_booking_date);
+                                insertFlightPrepStatement.executeUpdate();
+                            }
+                            return bookingType;
+                        }
+                    }
+                case 2:
+                    // Hotel booking
+                    // Get hotel info from user: check-in date, check-out date, city, country, number of rooms, number of guests
+                    // Query for hotel options using the given info
+                    // Display hotel options as a sub menu to choose from
+                    // Get user input for hotel option
+                    // Display room options as a sub menu to choose from
+                    // Get user input for room option
+                    // Book hotel room by getting user input for booking info (user ID, checkin date, chekout date)
+                    // and info from room selected (room number),
+                    // and info from hotel selected (brand affiliation, hotel address)
+                    // calculate costs (hotel toatal cost, hotel tax, hotel booking fees, hotel booking date),
+                    // generate a hotel reference number,
+                    // and insert into HotelBooking table
+                    return bookingType;
+                case 3:
+                    // Car rental booking
+                    // Get car rental info from user: pickup date time, return date time, pickup location, return location
+                    // Query for car rental options using the given info
+                    // Display car rental options as a sub menu to choose from
+                    // Get user input for car rental option
+                    // Book car rental by getting user input for booking info (user ID, pickup date time, return date time, pickup location, return location)
+                    // and info from car rental selected (car ar license plate, insurance)
+                    // calculate costs (car rental total cost, car rental tax, car rental booking fees, car rental booking date),
+                    // generate a car rental reference number,
+                    // and insert into CarRentalBooking table
+                    return bookingType;
+                default:
+                    System.out.println("Invalid option. Please try again.");
+                    break;
+            }
         }
     }
 

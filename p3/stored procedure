@@ -216,7 +216,7 @@ END
 -- it will do so by using a cursor to loop through the Car table to find a car that fits the budget and number of people and is in the city, country and then calculate the cost and tax and booking fees and total cost and insurance and then insert the values into the CarRentalBooking table
 -- generate a unique car_rental_reference_number
 
-CREATE OR REPLACE PROCEDURE createCarRentalRelation (
+CREATE OR REPLACE PROCEDURE createCarRentalRelation2 (
     IN p_user_id INT,
     IN p_pickup_date_time DATETIME,
     IN p_return_date_time DATETIME,
@@ -238,13 +238,12 @@ BEGIN
     DECLARE car_rental_insurance VARCHAR(50);
     DECLARE booked_days INT;
     DECLARE done INT DEFAULT 0;
-    
     -- Declare cursor for selecting available cars
     DECLARE cur CURSOR FOR
         SELECT car_license_plate, car_daily_cost
         FROM Car
         WHERE city_name = p_city_name AND country = p_country
-        AND car_daily_cost <= p_budget --/ TIMESTAMPDIFF(DAY, p_pickup_date_time, p_return_date_time)
+        AND car_daily_cost <= p_budget 
         AND number_of_seats >= p_num_people
         AND car_license_plate NOT IN (
             SELECT car_license_plate
@@ -254,55 +253,36 @@ BEGIN
             OR (p_pickup_date_time BETWEEN pickup_date_time AND return_date_time)
             OR (p_return_date_time BETWEEN pickup_date_time AND return_date_time)
         );
-
     -- Declare handler for cursor not found
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
-    
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;  
     -- Generate unique car_rental_reference_number
     SET car_rental_ref_num = (SELECT MAX(car_rental_reference_number) + 1 FROM CarRentalBooking);
-
-     -- Calculate booked days
-    --SET booked_days = TIMESTAMPDIFF(DAYS, p_pickup_date_time, p_return_date_time);
-    --SET booked_days = TIMESTAMPDIFF(16, p_return_date_time, p_pickup_date_time);
+    -- Calculate booked days
     SET booked_days = DAYS(p_return_date_time) - DAYS(p_pickup_date_time);
-
     -- Open cursor
     OPEN cur;
-
     -- Loop through available cars
     carLoop: LOOP
         FETCH cur INTO car_rental_plate, car_rental_cost;
-
         -- Exit loop if no more rows
         IF done THEN
             LEAVE carLoop;
         END IF;
-
         -- Calculate tax and booking fees
         SET car_rental_cost = car_rental_cost * booked_days;
         SET car_rental_tax = 0.1 * car_rental_cost;
         SET car_rental_booking_fees = 0.05 * car_rental_cost;
-
         -- Calculate total cost
         SET car_rental_total_cost = car_rental_cost + car_rental_tax + car_rental_booking_fees;
-
         -- Select insurance for the car
-        /*SET car_rental_insurance = (
+        SET car_rental_insurance = (
             SELECT company_policy
             FROM Car
             WHERE car_license_plate = car_rental_plate
             AND city_name = p_city_name
             AND country = p_country
             FETCH FIRST ROW ONLY 
-        );*/
-        SELECT company_policy
-        INTO car_rental_insurance
-        FROM Car
-        WHERE car_license_plate = car_rental_plate
-            AND city_name = p_city_name
-            AND country = p_country;
-        --FETCH FIRST ROW ONLY;
-
+        );
         -- Insert into CarRentalBooking table
         INSERT INTO CarRentalBooking (car_rental_reference_number, user_id, car_license_plate, pickup_location, return_location, pickup_date_time, return_date_time, car_rental_booking_date, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance)
         VALUES (car_rental_ref_num, p_user_id, car_rental_plate, p_pickup_location, p_return_location, p_pickup_date_time, p_return_date_time, CURRENT_DATE, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance);
@@ -310,16 +290,14 @@ BEGIN
         -- Exit loop after inserting one entry
         LEAVE carLoop;
     END LOOP;
-
     -- Close cursor
     CLOSE cur;
-
     -- Return car rental details
    -- SELECT car_rental_ref_num, car_rental_plate, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance;
 END@
 
 
-CALL createCarRentalRelation(           
+CALL createCarRentalRelation2(           
     1,
     '2024-03-15 10:00:00', 
     '2024-03-20 10:00:00', 
