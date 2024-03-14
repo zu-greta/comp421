@@ -4,6 +4,9 @@ import java.sql.* ;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import javax.lang.model.type.NullType;
+
 import java.util.Random;
 
 class jj //find better name
@@ -283,8 +286,8 @@ class jj //find better name
                             // Registered user
                             // Get user info from user: username, password
                             // Taking user input for username and password
+                            scanner.nextLine(); // Consume the newline character
                             while (true) {
-                                scanner.nextLine(); // Consume the newline character
                                 System.out.print("Enter the username: ");
                                 String userName = scanner.nextLine();
                                 if (userName.length() > 10) {
@@ -425,7 +428,9 @@ class jj //find better name
                                 }
                             }
                             // create a unique user_id
-                            userID = statement.executeUpdate("SELECT MAX(user_id) FROM Users") + 1;
+                            ResultSet rs = statement.executeQuery("SELECT MAX(user_id) FROM Users");
+                            rs.next();
+                            userID = rs.getInt(1) + 1;
                             // Insert into Users table
                             String insertUserQuery = "INSERT INTO Users VALUES (?, ?, ?, ?, ?, ?)";
                             try (PreparedStatement insertUserPrepStatement = con.prepareStatement(insertUserQuery)) {
@@ -471,11 +476,12 @@ class jj //find better name
                                     double planeTicketTax = resultSet.getDouble("plane_ticket_tax");
                                     double flightBookingFees = resultSet.getDouble("flight_booking_fees");
                                     String flightBookingDate = resultSet.getString("flight_booking_date");
-                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+---------------------+");
-                                    System.out.println("| Flight Reference No. | User ID              | Passenger Names      | Flight Number        | Departure Date Time  | Flight Total Cost    | Fare Class           | Seat Numbers         | Plane Ticket Cost    | Plane Ticket Surcharge| Plane Ticket Tax     | Flight Booking Fees | Flight Booking Date |");
-                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+---------------------+");
-                                    System.out.printf("| %-20d | %-20d | %-20s | %-20s | %-20s | %-20.2f | %-20s | %-20s | %-20.2f | %-20.2f | %-20.2f | %-20.2f | %-20s |\n", flightReferenceNumber, user_id, passengerNames, flightNumber, departureDateTime, flightTotalCost, fareClass, seatNumbers, planeTicketCost, planeTicketSurcharge, planeTicketTax, flightBookingFees, flightBookingDate);
+                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+-----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+-----------------------+---------------------+---------------------+");
+                                    System.out.println("| Flight Reference No. | User ID              | Passenger Names      | Flight Number        | Departure Date Time   | Flight Total Cost    | Fare Class           | Seat Numbers         | Plane Ticket Cost    | Plane Ticket Surcharge| Plane Ticket Tax      | Flight Booking Fees | Flight Booking Date |");
+                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+-----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+-----------------------+---------------------+---------------------+");
+                                    System.out.printf("| %-20d | %-20d | %-20s | %-20s | %-20s | %-20.2f | %-20s | %-20s | %-20.2f | %-21.2f | %-21.2f | %-19.2f | %-19s |\n", flightReferenceNumber, user_id, passengerNames, flightNumber, departureDateTime, flightTotalCost, fareClass, seatNumbers, planeTicketCost, planeTicketSurcharge, planeTicketTax, flightBookingFees, flightBookingDate);
                                 }
+                                System.out.println("+----------------------+----------------------+----------------------+----------------------+-----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+-----------------------+---------------------+---------------------+");
                                 // Print booking success message
                                 System.out.println("Booking successful");
                             }
@@ -505,6 +511,7 @@ class jj //find better name
                                     System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
                                     System.out.printf("| %-20d | %-20d | %-20d | %-20s | %-20s | %-20s | %-20s | %-20.2f | %-20.2f | %-20.2f | %-20.2f | %-20s |\n", hotelReferenceNumber, user_id, roomNumber, brandAffiliation, hotelAddress, checkinDate, checkoutDate, hotelTotalCost, roomCost, hotelTax, hotelBookingFees, hotelBookingDate);
                                 }
+                                System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
                                 // Print booking success message
                                 System.out.println("Booking successful");
                             }
@@ -535,6 +542,7 @@ class jj //find better name
                                     System.out.println("+--------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------+");
                                     System.out.printf("| %-25d | %-20d | %-20s | %-20s | %-20s | %-20s | %-20s | %-20s | %-20.2f | %-20.2f | %-20.2f | %-20.2f | %-20s |\n", carRentalReferenceNumber, user_id, carLicensePlate, pickupLocation, returnLocation, pickupDateTime, returnDateTime, carRentalBookingDate, carRentalCost, carRentalTax, carRentalBookingFees, carRentalTotalCost, insurance);
                                 }
+                                System.out.println("+--------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------+");
                                 // Print booking success message
                                 System.out.println("Booking successful");
                             }
@@ -575,11 +583,13 @@ class jj //find better name
                     String arrivalCountry = "";
                     String airline = "";
                     String date = "";
+                    String flightQuery = "";
+                    String fare="";
                     // Get flight info from user: departure date, airline, fare class, departure city and country, arrival city and country
                     while(true){
                         //select a year
                         System.out.println("Choose the year: ");
-                        System.out.println("    1. 2024");
+                        System.out.println("    2024");
                         System.out.print("Please Enter Your Option Number: ");
                         if (!scanner.hasNextInt()) {
                             System.out.println("Invalid option. Please try again.");
@@ -587,7 +597,7 @@ class jj //find better name
                             continue;
                         }
                         year = scanner.nextInt();
-                        if (year != 1) {
+                        if (year != 2024) {
                             System.out.println("Invalid option. Please try again.");
                             continue;
                         }
@@ -747,41 +757,82 @@ class jj //find better name
                                                     continue;
                                                 }
                                                 airline = airlines.get(airlineOption-1);
-                                                //select a fare class
-                                                //fetch fare classes from database (flights table)
-                                                String fareClassQuery = "SELECT DISTINCT fare_class FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND DATE(departure_date_time) = ?";
-                                                try (PreparedStatement fareClassPrepStatement = con.prepareStatement(fareClassQuery)) {
-                                                    fareClassPrepStatement.setString(1, departureCity);
-                                                    fareClassPrepStatement.setString(2, departureCountry);
-                                                    fareClassPrepStatement.setString(3, arrivalCity);
-                                                    fareClassPrepStatement.setString(4, arrivalCountry);
-                                                    fareClassPrepStatement.setString(5, airline);
-                                                    fareClassPrepStatement.setString(6, date);
-                                                    try (ResultSet resultSet4 = fareClassPrepStatement.executeQuery()) {
-                                                        List<String> fareClasses = new ArrayList<>();
-                                                        while (resultSet4.next()) {
-                                                            fareClasses.add(resultSet4.getString("fare_class"));
+                                                boolean flag4 = true;
+                                                while(flag4) {
+                                                    //select a fare class options: Economy, Business, First Class, Premium Economy
+                                                    //submenu to choose from
+                                                    System.out.println("Choose the fare class: ");
+                                                    System.out.println("    1. Economy");
+                                                    System.out.println("    2. Business");
+                                                    System.out.println("    3. First Class");
+                                                    System.out.println("    4. Premium Economy");
+                                                    System.out.print("Please Enter Your Option Number: ");
+                                                    if (!scanner.hasNextInt()) {
+                                                        System.out.println("Invalid option. Please try again.");
+                                                        scanner.next();
+                                                        continue;
+                                                    }
+                                                    int fareClassOption = scanner.nextInt();
+                                                    if (fareClassOption < 1 || fareClassOption > 4) {
+                                                        System.out.println("Invalid option. Please try again.");
+                                                        continue;
+                                                    }
+                                                    String fareseats = "";
+                                                    switch (fareClassOption) {
+                                                        case 1:
+                                                            fareClass = "Economy";
+                                                            fareseats = "economy_seats";
+                                                            flightQuery = "SELECT flight_number, departure_date_time, economy_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND economy_seats > 0 AND DATE(departure_date_time) = ?";
+                                                            fare = "economy_cost";
+                                                            break;
+                                                        case 2:
+                                                            fareClass = "Business";
+                                                            fareseats = "business_seats";
+                                                            flightQuery = "SELECT flight_number, departure_date_time, business_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND business_seats > 0 AND DATE(departure_date_time) = ?";
+                                                            fare = "business_cost";
+                                                            break;
+                                                        case 3:
+                                                            fareClass = "First Class";
+                                                            fareseats = "first_class_seats";
+                                                            flightQuery = "SELECT flight_number, departure_date_time, first_class_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND first_class_seats > 0 AND DATE(departure_date_time) = ?";
+                                                            fare = "first_class_cost";
+                                                            break;
+                                                        case 4:
+                                                            fareClass = "Premium Economy";
+                                                            fareseats = "premium_economy_seats";
+                                                            flightQuery = "SELECT flight_number, departure_date_time, premium_economy_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND premium_economy_seats > 0 AND DATE(departure_date_time) = ?";
+                                                            fare = "premium_economy_cost";
+                                                            break;
+                                                    }
+                                                    //check if seats available for that fare class
+                                                    String seatsQuery = "SELECT " + fareseats + " FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND DATE(departure_date_time) = ?";
+                                                    try (PreparedStatement seatsPrepStatement = con.prepareStatement(seatsQuery)) {
+                                                        seatsPrepStatement.setString(1, departureCity);
+                                                        seatsPrepStatement.setString(2, departureCountry);
+                                                        seatsPrepStatement.setString(3, arrivalCity);
+                                                        seatsPrepStatement.setString(4, arrivalCountry);
+                                                        seatsPrepStatement.setString(5, airline);
+                                                        seatsPrepStatement.setString(6, date);
+                                                        try (ResultSet resultSet4 = seatsPrepStatement.executeQuery()) {
+                                                            while (resultSet4.next()) {
+                                                                int seats = resultSet4.getInt(fareseats);
+                                                                if (resultSet4.wasNull() || seats <= 0) {
+                                                                    flag4 = true;
+                                                                    continue;
+                                                                }
+                                                                else {
+                                                                    flag4 = false;
+                                                                    break;
+                                                                }
+                                                            }
                                                         }
-                                                        System.out.println("Choose the fare class: ");
-                                                        for (int i = 0; i < fareClasses.size(); i++) {
-                                                            System.out.println("    " + (i+1) + ". " + fareClasses.get(i));
-                                                        }
-                                                        System.out.print("Please Enter Your Option Number: ");
-                                                        if (!scanner.hasNextInt()) {
-                                                            System.out.println("Invalid option. Please try again.");
-                                                            scanner.next();
-                                                            continue;
-                                                        }
-                                                        int fareClassOption = scanner.nextInt();
-                                                        if (fareClassOption < 1 || fareClassOption > fareClasses.size()) {
-                                                            System.out.println("Invalid option. Please try again.");
-                                                            continue;
-                                                        }
-                                                        fareClass = fareClasses.get(fareClassOption-1);
-                                                        break;
-                                                        // Query for flight options using the given info
+                                                    }
+                                                    if (flag4) {
+                                                        System.out.println("There are no available seats for that fare class. Please try again.");
+                                                        continue;
                                                     }
                                                 }
+                                                break;
                                             }
                                         }
                                     }
@@ -791,58 +842,47 @@ class jj //find better name
                     }
                     // Query for flight options using the given info
                     // Display flight options as a sub menu to choose from
-                    String flightQuery = "";
-                    String fare="";
-                    switch (fareClass) {
-                        case "Economy":
-                            // Display economy class flight options
-                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND economy_seats > 0 AND DATE(departure_date_time) = ?";
-                            fare = "economy_cost";
-                            break;
-                        case "Business":
-                            // Display business class flight options
-                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND business_seats > 0 AND DATE(departure_date_time) = ?";
-                            fare = "business_cost";
-                            break;
-                        case "First Class":
-                            // Display first class flight options
-                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND first_class_seats > 0 AND DATE(departure_date_time) = ?";
-                            fare = "first_class_cost";
-                            break;
-                        case "Premium Economy":
-                            // Display premium economy class flight options
-                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND premium_economy_seats > 0 AND DATE(departure_date_time) = ?";
-                            fare = "premium_economy_cost";
-                            break;
-                    }
                     try (PreparedStatement flightPrepStatement = con.prepareStatement(flightQuery)) {
                         flightPrepStatement.setString(1, departureCity);
                         flightPrepStatement.setString(2, departureCountry);
                         flightPrepStatement.setString(3, arrivalCity);
                         flightPrepStatement.setString(4, arrivalCountry);
                         flightPrepStatement.setString(5, airline);
-                        flightPrepStatement.setString(6, fareClass);
-                        flightPrepStatement.setString(7, date);
+                        flightPrepStatement.setString(6, date);
                         // Process and display query results as a list
                         try (ResultSet resultSet = flightPrepStatement.executeQuery()) {
                             List<String> flightNumbers = new ArrayList<>();
                             List<String> departureDateTimes = new ArrayList<>();
                             List<Double> flightCosts = new ArrayList<>();
-                            System.out.println("+-----+----------------------+----------------------+-----------------------+");
-                            System.out.println("|     | Flight Number        | Departure Date Time  | Flight Cost           |");
-                            System.out.println("+-----+----------------------+----------------------+-----------------------+");
+                            System.out.println("+---------+----------------------+-------------------------+-----------------------+");
+                            System.out.println("| Opt. nu.| Flight Number        | Departure Date Time     | Flight Cost           |");
+                            System.out.println("+---------+----------------------+-------------------------+-----------------------+");
                             int i = 0;
                             while (resultSet.next()) {
                                 i++; // Increment the counter
                                 String flightNumber = resultSet.getString("flight_number");
                                 String departureDateTime = resultSet.getString("departure_date_time");
-                                double flightCost = resultSet.getDouble(fare);
+                                double flightcost = 0.0;
+                                switch (fare) {
+                                    case "economy_cost":
+                                        flightcost = resultSet.getDouble("economy_cost");
+                                        break;
+                                    case "business_cost":
+                                        flightcost = resultSet.getDouble("business_cost");
+                                        break;
+                                    case "first_class_cost":
+                                        flightcost = resultSet.getDouble("first_class_cost");
+                                        break;
+                                    case "premium_economy_cost":
+                                        flightcost = resultSet.getDouble("premium_economy_cost");
+                                        break;
+                                }
                                 flightNumbers.add(flightNumber);
                                 departureDateTimes.add(departureDateTime);
-                                flightCosts.add(flightCost);
-                                System.out.printf("| %-5s | %-20s | %-20s | %-20.2f |\n", i, flightNumber, departureDateTime, flightCost);
+                                flightCosts.add(flightcost);
+                                System.out.printf("| %-7s | %-20s | %-23s | %-21.2f |\n", i, flightNumber, departureDateTime, flightcost);
                             }
-                            System.out.println("+-----+----------------------+----------------------+----------------------+");
+                            System.out.println("+---------+----------------------+-------------------------+-----------------------+");
                             // Get user input for flight option
                             System.out.print("Please Enter Your Option Number: ");
                             if (!scanner.hasNextInt()) {
@@ -875,7 +915,9 @@ class jj //find better name
                             double flight_total_cost = flight_ticket_cost + plane_ticket_surcharge + plane_ticket_tax + flight_booking_fees;
                             String flight_booking_date = java.time.LocalDate.now().toString();
                             // and generate a flight reference number, 
-                            int flightReferenceNumber = statement.executeUpdate("SELECT MAX(flight_reference_number) FROM FlightBooking") + 1;
+                            ResultSet flightRefNumber = statement.executeQuery("SELECT MAX(flight_reference_number) FROM FlightBooking");
+                            flightRefNumber.next();
+                            int flightReferenceNumber = flightRefNumber.getInt(1) + 1;
                             // and insert into FlightBooking table
                             String insertFlightQuery = "INSERT INTO FlightBooking VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
                             Random rand = new Random();
