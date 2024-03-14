@@ -1,6 +1,14 @@
 //package p3; //remove when submitting
 
 import java.sql.* ;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+import javax.lang.model.type.NullType;
+
+import java.util.Random;
+
 
 class jjj //find better name
 {
@@ -43,12 +51,12 @@ class jjj //find better name
         Statement statement = con.createStatement ( ) ;
 
         //main program
-        try {
+        try (Scanner scanner0 = new Scanner(System.in)){
             boolean run = true;
             while(run) {
                 //Add argument validity check (such as string lenghts)
                 System.out.println("\nBookings Main Menu: ");
-                System.out.println("    1. Find all booking total costs for a given user"); //query //Change to register User
+                System.out.println("    1. Register a new user"); //query //Change to register User
                 System.out.println("    2. Add a new booking for a user"); //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
                 System.out.println("    3. Update a user's profile information"); //query for user //update
                 System.out.println("    4. Flight Cancellation"); //query for flight bookings //query for next available flight //update bookings for all users //delete flight 
@@ -56,11 +64,15 @@ class jjj //find better name
                 System.out.println("    6. Quit");
                 System.out.print("Please Enter Your Option Number: ");
 
-                int option = Integer.parseInt(System.console().readLine());
+                if (!scanner0.hasNextInt()) {
+                    System.out.println("Invalid option. Please try again.");
+                    scanner0.next();
+                    continue;
+                }
 
                 switch (option) {
                     case 1:
-                        registerUser(statement);
+                        registerUser(con, statement, scanner0);
                         //bookingTotalCosts(statement);
                         break;
                     case 2:
@@ -97,8 +109,9 @@ class jjj //find better name
         con.close ( ) ;
     }
     
-    static void registerUser(Statement statement) throws SQLException {
-        boolean flag = true;
+    // Method to register a new user
+    static void registerUser(Connection con, Statement statement, Scanner scanner){
+        boolean flag1 = true;
         boolean flag2 = true;
         boolean flag3 = true;
         boolean flag4 = true;
@@ -106,6 +119,7 @@ class jjj //find better name
         boolean flag6 = true;
         boolean flag7 = true;
         boolean flag8 = true;
+
         String name = null;
         String email = null;
         String phoneNum = null;
@@ -115,76 +129,188 @@ class jjj //find better name
         String password = null;
         String selectedLanguage = null;
 
-        while (flag4){
-            // Taking user input for name
-            System.out.print("Enter your name: ");
-            name = System.console().readLine();
-            //Check if name is within the length limit
-            if (name.length() > 25 || name.length() < 1){
-                System.out.println("Invalid name length. Please try again.");
-                continue;
-            } 
-            else {
-                flag4 = false;
-            }
-        }
+        scanner.nextLine();
 
-        while (flag5) {
-            // Taking user input for email
-            System.out.print("Enter your email: ");
-            email = System.console().readLine();
-            //Check if email is within the length limit
-            if (email.length() > 40 || email.length() < 1){
-                System.out.println("Invalid email length. Please try again.");
-                continue;
-            } 
-            else {
-                flag5 = false;
+        try {
+            while (flag1){
+                // Taking user input for name
+                System.out.print("Enter your name: ");
+                name = scanner.nextLine();
+                //Check if name is within the length limit
+                if (name.length() > 25 || name.length() < 1){
+                    System.out.println("Invalid name length. Please try again.");
+                    continue;
+                } 
+                else {
+                    System.out.println("Registered name: " + name);
+                    flag1 = false;
+                }
             }
-        }
+            while (flag2){
+                // Taking user input for email
+                System.out.print("Enter your email: ");
+                email = scanner.nextLine();
+                //Check if email is within the length limit
+                if (email.length() > 40 || email.length() < 1){
+                    System.out.println("Invalid email length. Please try again.");
+                    continue;
+                } 
+                else {
+                    System.out.println("Registered email: " + email);
+                    flag2 = false;
+                }
+            }
+            while (flag3){
+                // Taking user input for phone number
+                System.out.print("Enter your phone number: ");
+                phoneNum = scanner.nextLine();
+                //Check if phone number is within the length limit
+                if (phoneNum.length() > 22 || phoneNum.length() < 1){
+                    System.out.println("Invalid phone number length. Please try again.");
+                    continue;
+                } 
+                else {
+                    System.out.println("Registered phone number: " + phoneNum);
+                    flag3 = false;
+                    
+                }
+            }
+            while (flag4){
+                // Taking user input for address
+                System.out.print("Enter your address: ");
+                address = scanner.nextLine();
+                //Check if address is within the length limit
+                if (address.length() > 50 || address.length() < 1){
+                    System.out.println("Invalid address length. Please try again.");
+                    continue;
+                } 
+                else {
+                    System.out.println("Registered address: " + address);
+                    flag4 = false;
+                }
+            }
+            while (flag5){
+                // Taking user input for credit card info
+                System.out.print("Enter your credit card info: ");
+                creditInfo = scanner.nextLine();
+                //Check if credit card info is within the length limit
+                if (creditInfo.length() > 28 || creditInfo.length() < 1){
+                    System.out.println("Invalid credit card info length. Please try again.");
+                    continue;
+                } 
+                else {
+                    System.out.println("Registered credit card info: " + creditInfo);
+                    flag5 = false;
+                }
+            }
+            while (flag6){
+                // Taking user input for username
+                System.out.print("Choose a username: ");
+                username = scanner.nextLine();
 
-        while (flag6) {
-            // Taking user input for phone number
-            System.out.print("Enter your phone number: ");
-            phoneNum = System.console().readLine();
-            //Check if phone number is within the length limit
-            if (phoneNum.length() > 22 || phoneNum.length() < 1){
-                System.out.println("Invalid phone number length. Please try again.");
-                continue;
-            } 
-            else {
-                flag6 = false;
-            }
-        }
+                if (username.length() > 10 || username.length() < 1){
+                    System.out.println("Invalid username length. Please try again.");
+                    continue;
+                }
 
-        while (flag7) {
-            // Taking user input for address
-            System.out.print("Enter your address: ");
-            address = System.console().readLine();
-            //Check if address is within the length limit
-            if (address.length() > 50 || address.length() < 1){
-                System.out.println("Invalid address length. Please try again.");
-                continue;
-            } 
-            else {
-                flag7 = false;
+                String query = "SELECT username FROM Registered WHERE username = ?";
+                try (PreparedStatement preparedStatement = con.prepareStatement(query)){
+                    preparedStatement.setString(1, username);
+                    try (ResultSet resultSet1 = preparedStatement.executeQuery()){
+                        
+                        if (resultSet1.next()) {
+                            System.out.println("Username already exists. Please try again.");
+                            continue;
+                        }
+                        else {
+                            flag6 = false;
+                        }
+                        
+                    }
+                }
             }
-        }
+            while (flag7){
+                // Taking user input for password
+                System.out.print("Choose a password: ");
+                password = scanner.nextLine();
+                //Check if password is within the length limit
+                if (password.length() > 10 || password.length() < 1) {
+                    System.out.println("Invalid password length. Please try again.");
+                    continue;
+                }
+                System.out.print("Re-enter password: ");
+                String password2 = scanner.nextLine();
+                if (!password.equals(password2)) {
+                    System.out.println("Passwords do not match. Please try again.");
+                    continue;
+                }
+                else {
+                    flag7 = false;
+                }
+            }
+            while (flag8){
+                //Choose language
+                System.out.println("Choose a language: ");
+                System.out.println("    1. English");
+                System.out.println("    2. French");
+                System.out.print("Please Enter Your Option Number: ");
+                int language = scanner.nextInt();
 
-        while (flag8) {
-            // Taking user input for credit card info
-            System.out.print("Enter your credit card info: ");
-            creditInfo = System.console().readLine();
-            //Check if credit card info is within the length limit
-            if (creditInfo.length() > 28 || creditInfo.length() < 1){
-                System.out.println("Invalid credit card info length. Please try again.");
-                continue;
-            } 
-            else {
-                flag8 = false;
+                switch (language) {
+                    case 1:
+                        selectedLanguage = "en";
+                        flag8 = false;
+                        break;
+                
+                    case 2:
+                        selectedLanguage = "fr";
+                        flag8 = false;
+                        break;
+                    default:
+                        System.out.println("Invalid option. Please try again.");
+                        break;
+                }
             }
+            //Generate a user id by getting the max user id from the Users table and adding 1
+            int userId = 0;
+            String query = "SELECT MAX(user_id) FROM Users";
+            try (PreparedStatement preparedStatement = con.prepareStatement(query)){
+                try (ResultSet resultSet2 = preparedStatement.executeQuery()){
+                    if (resultSet2.next()) {
+                        userId = resultSet2.getInt(1) + 1;
+                    }
+                }
+            }
+            //Insert user info into Users and Registered tables
+            query = "INSERT INTO Users (user_id, name, email, phone_number, address, credit_card_information) VALUES (?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement preparedStatement = con.prepareStatement(query)){
+                preparedStatement.setInt(1, userId);
+                preparedStatement.setString(2, name);
+                preparedStatement.setString(3, email);
+                preparedStatement.setString(4, phoneNum);
+                preparedStatement.setString(5, address);
+                preparedStatement.setString(6, creditInfo);
+                preparedStatement.executeUpdate();
+            }
+            query = "INSERT INTO Registered (user_id, username, password, language) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement preparedStatement = con.prepareStatement(query)){
+                preparedStatement.setInt(1, userId);
+                preparedStatement.setString(2, username);
+                preparedStatement.setString(3, password);
+                preparedStatement.setString(4, selectedLanguage);
+                preparedStatement.executeUpdate();
+            }
+            System.out.println("User registered successfully");
+
+        }catch (SQLException e) {
+            e.printStackTrace();
         }
-    
+    }
+
+
+    static void OldregisterUser(Connection con, Statement statement, Scanner scanner) throws SQLException {
+       
+
         while (flag) {
             // Taking user input for username
             System.out.print("Choose a username: ");
