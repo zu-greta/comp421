@@ -18,6 +18,7 @@ CREATE TABLE Registered (
     username VARCHAR(10) UNIQUE NOT NULL, ------------------------------------------------------------add
     password VARCHAR(10) NOT NULL,
     language CHAR(2) DEFAULT 'no' NOT NULL, -- modified from p1
+    totalspent DECIMAL(15, 2) DEFAULT 0.00 NOT NULL, 
     --history CLOB, -------------------------------------------------------------------------------------drop?
     PRIMARY KEY (user_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)

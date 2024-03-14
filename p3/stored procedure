@@ -19,6 +19,7 @@ CREATE TABLE Registered (
     username VARCHAR(10) UNIQUE NOT NULL, ------------------------------------------------------------add
     password VARCHAR(10) NOT NULL,
     language CHAR(2) DEFAULT 'no' NOT NULL, -- modified from p1
+    totalspent DECIMAL(15, 2) DEFAULT 0.00 NOT NULL, 
     --history CLOB, -------------------------------------------------------------------------------------drop?
     PRIMARY KEY (user_id),
     FOREIGN KEY (user_id) REFERENCES Users(user_id)
@@ -207,123 +208,50 @@ END
 */
 --Write one stored procedure to perform operations on your project database. It should be nontrivial, illustrating a feature or features such as local variables, multiple SQL statements, loops etc. It should also involve a cursor. The stored procedure should use one or more parameters in a significant way.
 
--- stored procedure that will Create a new relation and load it with values computed from one or more existing relations. using the created tables
--- using CarRentalBooking and Car tables, create a stored procedure called createCarRentalRelation that will create a new table entry in CarRentalBooking table and load it with values computed from the CarRentalBooking table and Car table
--- that will be inserted into the CarRentalBooking table. The new relation will contain the following columns: car_rental_reference_number, user_id, car_license_plate, pickup_location, return_location, pickup_date_time, return_date_time, car_rental_booking_date, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance
--- the data will be loaded from the CarRentalBooking table and Car table and User table
--- the stored procedure will take in the following parameters: user_id, pickup_date_time, return_date_time, budget, number of people, city_name, country
--- the stored procedure will return the car_rental_reference_number, car_license_plate, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance
--- it will do so by using a cursor to loop through the Car table to find a car that fits the budget and number of people and is in the city, country and then calculate the cost and tax and booking fees and total cost and insurance and then insert the values into the CarRentalBooking table
--- generate a unique car_rental_reference_number
-
-CREATE OR REPLACE PROCEDURE createCarRentalRelation2 (
-    IN p_user_id INT,
-    IN p_pickup_date_time DATETIME,
-    IN p_return_date_time DATETIME,
-    IN p_budget DECIMAL(5, 2),
-    IN p_num_people INT,
-    IN p_city_name VARCHAR(20),
-    IN p_country VARCHAR(15),
-    IN p_pickup_location VARCHAR(50),
-    IN p_return_location VARCHAR(50)
-)
+CREATE PROCEDURE userSpendings(IN p_user_id INT)
 LANGUAGE SQL
 BEGIN
-    DECLARE car_rental_ref_num INT;
-    DECLARE car_rental_plate VARCHAR(10);
-    DECLARE car_rental_cost DECIMAL(6, 2);
-    DECLARE car_rental_tax DECIMAL(5, 2);
-    DECLARE car_rental_booking_fees DECIMAL(4, 2);
-    DECLARE car_rental_total_cost DECIMAL(7, 2);
-    DECLARE car_rental_insurance VARCHAR(50);
-    DECLARE booked_days INT;
     DECLARE done INT DEFAULT 0;
-    -- Declare cursor for selecting available cars
-    DECLARE cur CURSOR FOR
-        SELECT car_license_plate, car_daily_cost
-        FROM Car
-        WHERE city_name = p_city_name AND country = p_country
-        AND car_daily_cost <= p_budget 
-        AND number_of_seats >= p_num_people
-        AND car_license_plate NOT IN (
-            SELECT car_license_plate
-            FROM CarRentalBooking
-            WHERE (pickup_date_time BETWEEN p_pickup_date_time AND p_return_date_time)
-            OR (return_date_time BETWEEN p_pickup_date_time AND p_return_date_time)
-            OR (p_pickup_date_time BETWEEN pickup_date_time AND return_date_time)
-            OR (p_return_date_time BETWEEN pickup_date_time AND return_date_time)
-        );
-    -- Declare handler for cursor not found
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;  
-    -- Generate unique car_rental_reference_number
-    SET car_rental_ref_num = (SELECT MAX(car_rental_reference_number) + 1 FROM CarRentalBooking);
-    -- Calculate booked days
-    SET booked_days = DAYS(p_return_date_time) - DAYS(p_pickup_date_time);
-    -- Open cursor
-    OPEN cur;
-    -- Loop through available cars
-    carLoop: LOOP
-        FETCH cur INTO car_rental_plate, car_rental_cost;
-        -- Exit loop if no more rows
-        IF done THEN
-            LEAVE carLoop;
-        END IF;
-        -- Calculate tax and booking fees
-        SET car_rental_cost = car_rental_cost * booked_days;
-        SET car_rental_tax = 0.1 * car_rental_cost;
-        SET car_rental_booking_fees = 0.05 * car_rental_cost;
-        -- Calculate total cost
-        SET car_rental_total_cost = car_rental_cost + car_rental_tax + car_rental_booking_fees;
-        -- Select insurance for the car
-        SET car_rental_insurance = (
-            SELECT company_policy
-            FROM Car
-            WHERE car_license_plate = car_rental_plate
-            AND city_name = p_city_name
-            AND country = p_country
-            FETCH FIRST ROW ONLY 
-        );
-        -- Insert into CarRentalBooking table
-        INSERT INTO CarRentalBooking (car_rental_reference_number, user_id, car_license_plate, pickup_location, return_location, pickup_date_time, return_date_time, car_rental_booking_date, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, insurance)
-        VALUES (car_rental_ref_num, p_user_id, car_rental_plate, p_pickup_location, p_return_location, p_pickup_date_time, p_return_date_time, CURRENT_DATE, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance);
---CHECK PICKUP LOCATION
-        -- Exit loop after inserting one entry
-        LEAVE carLoop;
-    END LOOP;
-    -- Close cursor
-    CLOSE cur;
-    -- Return car rental details
-   -- SELECT car_rental_ref_num, car_rental_plate, car_rental_cost, car_rental_tax, car_rental_booking_fees, car_rental_total_cost, car_rental_insurance;
-END@
+    DECLARE flight_cost DECIMAL(15, 2);
+    DECLARE hotel_cost DECIMAL(15, 2);
+    DECLARE car_cost DECIMAL(15, 2);
+    DECLARE total DECIMAL(15, 2);
+    DECLARE found_results INT DEFAULT 0; -- Flag to track if any results were found
 
+    --SET total = 0; 
+    DECLARE flight_booking_cursor CURSOR FOR SELECT flight_total_cost FROM FlightBooking WHERE user_id = p_user_id;
+    DECLARE hotel_booking_cursor CURSOR FOR SELECT hotel_total_cost FROM HotelBooking WHERE user_id = p_user_id;
+    DECLARE car_rental_booking_cursor CURSOR FOR SELECT car_rental_total_cost FROM CarRentalBooking WHERE user_id = p_user_id;
 
-CALL createCarRentalRelation2(           
-    1,
-    '2024-03-15 10:00:00', 
-    '2024-03-20 10:00:00', 
-    150.00, 
-    4,
-    'Montreal', 
-    'Canada', 
-    'Pierre-Elliot Trudeau International Airport', 
-    'Pierre-Elliot Trudeau International Airport' 
-);
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    SET total = 0;
+    OPEN flight_booking_cursor;
+    OPEN hotel_booking_cursor;
+    OPEN car_rental_booking_cursor;
 
-/*
-A value cannot be assigned to a host variable in the SELECT, VALUES, 
-FETCH or assignment statement because the data types are not compatible.  
-SQLSTATE=42806
-*/
+    FETCH flight_booking_cursor INTO flight_cost;
+    FETCH hotel_booking_cursor INTO hotel_cost;
+    FETCH car_rental_booking_cursor INTO car_cost;
 
+    IF flight_cost IS NOT NULL AND hotel_cost IS NOT NULL AND car_cost IS NOT NULL THEN
+        SET total = total + flight_cost + hotel_cost + car_cost;
+        SET found_results = 1;
+    END IF;
+    WHILE done = 0 DO
+        FETCH flight_booking_cursor INTO flight_cost;
+        FETCH hotel_booking_cursor INTO hotel_cost;
+        FETCH car_rental_booking_cursor INTO car_cost;
+        SET total = total + flight_cost + hotel_cost + car_cost;
+    END WHILE;
+    CLOSE flight_booking_cursor;
+    CLOSE hotel_booking_cursor;
+    CLOSE car_rental_booking_cursor;
 
-CREATE PROCEDURE procedureTest (
-    IN p_city_name VARCHAR(20),
-    IN p_country VARCHAR(15)
-)
-LANGUAGE SQL
-BEGIN
+    IF found_results = 0 THEN -- If no results found, set total to 0
+        SET total = 0;
+    END IF;
 
-    INSERT INTO Cities (city_name, country)
-    VALUES (p_city_name, p_country);
-
+    IF EXISTS (SELECT * FROM Registered WHERE user_id = p_user_id) THEN
+        UPDATE Registered SET totalspent = total WHERE user_id = p_user_id;
+    END IF;
 END@

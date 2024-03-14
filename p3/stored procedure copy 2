@@ -210,28 +210,107 @@ END
 --for a given user_id. The user_id should be a parameter to the stored procedure.
 --The stored procedure should use a cursor to retrieve the data from the FlightBooking, HotelBooking, and CarRentalBooking tables.
 --The stored procedure should return the retrieved data as a result set.
-
-CREATE PROCEDURE getBookingInfo (IN param_user_id INT) LANGUAGE SQL
+CREATE PROCEDURE userSpendings(IN p_user_id INT)
+LANGUAGE SQL
 BEGIN
-  DECLARE flight_ref_number INT;
-  DECLARE flight_number VARCHAR(7);
-  DECLARE hotel_ref_number INT;
-  DECLARE brand_affiliation VARCHAR(15);
-  DECLARE car_rental_ref_number INT;
-  DECLARE car_license_plate VARCHAR(10);
-  DECLARE done INT DEFAULT 0;
+    DECLARE done INT DEFAULT 0;
+    DECLARE flight_cost DECIMAL(15, 2);
+    DECLARE hotel_cost DECIMAL(15, 2);
+    DECLARE car_cost DECIMAL(15, 2);
+    DECLARE total DECIMAL(15, 2);
+    DECLARE found_results INT DEFAULT 0; -- Flag to track if any results were found
 
-  DECLARE cur CURSOR FOR
-    SELECT flight_reference_number, flight_number, hotel_reference_number, brand_affiliation, car_rental_reference_number, car_license_plate
-    FROM FlightBooking, HotelBooking, CarRentalBooking
-    WHERE FlightBooking.user_id = param_user_id AND HotelBooking.user_id = param_user_id AND CarRentalBooking.user_id = param_user_id;
+    DECLARE flight_booking_cursor CURSOR FOR SELECT flight_total_cost FROM FlightBooking WHERE user_id = p_user_id;
+    DECLARE hotel_booking_cursor CURSOR FOR SELECT hotel_total_cost FROM HotelBooking WHERE user_id = p_user_id;
+    DECLARE car_rental_booking_cursor CURSOR FOR SELECT car_rental_total_cost FROM CarRentalBooking WHERE user_id = p_user_id;
 
-  DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
-  OPEN cur;
-  FETCH cur INTO flight_ref_number, flight_number, hotel_ref_number, brand_affiliation, car_rental_ref_number, car_license_plate;
-  WHILE done = 0 DO
-    SELECT flight_ref_number, flight_number, hotel_ref_number, brand_affiliation, car_rental_ref_number, car_license_plate;
-    FETCH cur INTO flight_ref_number, flight_number, hotel_ref_number, brand_affiliation, car_rental_ref_number, car_license_plate;
-  END WHILE;
-  CLOSE cur;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    SET total = 0; -- Initialize total to 0
+
+    OPEN flight_booking_cursor;
+    OPEN hotel_booking_cursor;
+    OPEN car_rental_booking_cursor;
+
+    FETCH flight_booking_cursor INTO flight_cost;
+    IF flight_cost IS NOT NULL THEN
+        SET total = total + flight_cost;
+        SET found_results = 1;
+    END IF;
+
+    FETCH hotel_booking_cursor INTO hotel_cost;
+    IF hotel_cost IS NOT NULL THEN
+        SET total = total + hotel_cost;
+        SET found_results = 1;
+    END IF;
+
+    FETCH car_rental_booking_cursor INTO car_cost;
+    IF car_cost IS NOT NULL THEN
+        SET total = total + car_cost;
+        SET found_results = 1;
+    END IF;
+
+    CLOSE flight_booking_cursor;
+    CLOSE hotel_booking_cursor;
+    CLOSE car_rental_booking_cursor;
+
+    IF found_results = 0 THEN -- If no results found, set total to 0
+        SET total = 0;
+    END IF;
+
+    UPDATE Registered SET totalspent = total WHERE user_id = p_user_id;
+
+END@
+
+-- Make sure to check p_user_id exists in the Registered table before updating totalspent
+
+CREATE PROCEDURE userSpendings(IN p_user_id INT)
+LANGUAGE SQL
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE flight_cost DECIMAL(15, 2);
+    DECLARE hotel_cost DECIMAL(15, 2);
+    DECLARE car_cost DECIMAL(15, 2);
+    DECLARE total DECIMAL(15, 2);
+    DECLARE found_results INT DEFAULT 0; -- Flag to track if any results were found
+
+    --SET total = 0; 
+    DECLARE flight_booking_cursor CURSOR FOR SELECT flight_total_cost FROM FlightBooking WHERE user_id = p_user_id;
+    DECLARE hotel_booking_cursor CURSOR FOR SELECT hotel_total_cost FROM HotelBooking WHERE user_id = p_user_id;
+    DECLARE car_rental_booking_cursor CURSOR FOR SELECT car_rental_total_cost FROM CarRentalBooking WHERE user_id = p_user_id;
+
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    SET total = 0;
+    OPEN flight_booking_cursor;
+    OPEN hotel_booking_cursor;
+    OPEN car_rental_booking_cursor;
+
+    FETCH flight_booking_cursor INTO flight_cost;
+    FETCH hotel_booking_cursor INTO hotel_cost;
+    FETCH car_rental_booking_cursor INTO car_cost;
+
+    IF flight_cost IS NOT NULL AND hotel_cost IS NOT NULL AND car_cost IS NOT NULL THEN
+        SET total = total + flight_cost + hotel_cost + car_cost;
+        SET found_results = 1;
+    END IF;
+    WHILE done = 0 DO
+        FETCH flight_booking_cursor INTO flight_cost;
+        FETCH hotel_booking_cursor INTO hotel_cost;
+        FETCH car_rental_booking_cursor INTO car_cost;
+        SET total = total + flight_cost + hotel_cost + car_cost;
+    END WHILE;
+    CLOSE flight_booking_cursor;
+    CLOSE hotel_booking_cursor;
+    CLOSE car_rental_booking_cursor;
+
+    IF found_results = 0 THEN -- If no results found, set total to 0
+        SET total = 0;
+    END IF;
+
+    IF EXISTS (SELECT * FROM Registered WHERE user_id = p_user_id) THEN
+        UPDATE Registered SET totalspent = total WHERE user_id = p_user_id;
+    END IF;
+
+    --UPDATE Registered SET totalspent = total WHERE user_id = p_user_id;
+
 END@
