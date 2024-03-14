@@ -574,6 +574,7 @@ class jj //find better name
                     String arrivalCity = "";
                     String arrivalCountry = "";
                     String airline = "";
+                    String date = "";
                     // Get flight info from user: departure date, airline, fare class, departure city and country, arrival city and country
                     while(true){
                         //select a year
@@ -586,7 +587,7 @@ class jj //find better name
                             continue;
                         }
                         year = scanner.nextInt();
-                        if (year != 2024) {
+                        if (year != 1) {
                             System.out.println("Invalid option. Please try again.");
                             continue;
                         }
@@ -616,8 +617,7 @@ class jj //find better name
                             continue;
                         }
                         //select a day
-                        System.out.println("Choose the day: ");
-                        System.out.print("Please Enter Your Option Number: ");
+                        System.out.print("Choose the day: ");
                         if (!scanner.hasNextInt()) {
                             System.out.println("Invalid option. Please try again.");
                             scanner.next();
@@ -628,9 +628,25 @@ class jj //find better name
                             System.out.println("Invalid option. Please try again.");
                             continue;
                         }
+                        String dday = "";
+                        if (day >= 1 && day <= 9) {
+                            //add a 0 in front of the day
+                            dday = "0" + day;
+                        }
+                        else {
+                            dday = "" + day;
+                        }
+                        String mmonth = "";
+                        if (month >= 1 && month <= 9) {
+                            //add a 0 in front of the month
+                            mmonth = "0" + month;
+                        }
+                        else {
+                            mmonth = "" + month;
+                        }
                         //check if there are flights on that day using the database
-                        String date = year + "-" + month + "-" + day;
-                        String dateQuery = "SELECT departure_date_time FROM Flights WHERE departure_date_time = ?";
+                        date = year + "-" + mmonth + "-" + dday;
+                        String dateQuery = "SELECT departure_date_time FROM Flights WHERE DATE(departure_date_time) = ?";
                         try (PreparedStatement datePrepStatement = con.prepareStatement(dateQuery)) {
                             datePrepStatement.setString(1, date);
                             try (ResultSet resultSet = datePrepStatement.executeQuery()) {
@@ -643,8 +659,9 @@ class jj //find better name
                         //select a departure city
                         scanner.nextLine(); // Consume the newline character
                         //fetch cities and country from database (flights table)
-                        String cityQuery = "SELECT DISTINCT departure_city, departure_country FROM Flights";
+                        String cityQuery = "SELECT DISTINCT departure_city, departure_country FROM Flights WHERE DATE(departure_date_time) = ?";
                         try (PreparedStatement cityPrepStatement = con.prepareStatement(cityQuery)) {
+                            cityPrepStatement.setString(1, date);
                             try (ResultSet resultSet = cityPrepStatement.executeQuery()) {
                                 List<String> cities = new ArrayList<>();
                                 List<String> countries = new ArrayList<>();
@@ -671,10 +688,11 @@ class jj //find better name
                                 departureCountry = countries.get(departureCityOption-1);
                                 //select an arrival city
                                 //fetch cities and country from database (flights table)
-                                String cityQuery2 = "SELECT DISTINCT arrival_city, arrival_country FROM Flights WHERE departure_city = ? AND departure_country = ?";
+                                String cityQuery2 = "SELECT DISTINCT arrival_city, arrival_country FROM Flights WHERE departure_city = ? AND departure_country = ? AND DATE(departure_date_time) = ?";
                                 try (PreparedStatement cityPrepStatement2 = con.prepareStatement(cityQuery2)) {
                                     cityPrepStatement2.setString(1, departureCity);
                                     cityPrepStatement2.setString(2, departureCountry);
+                                    cityPrepStatement2.setString(3, date);
                                     try (ResultSet resultSet2 = cityPrepStatement2.executeQuery()) {
                                         List<String> arrivalCities = new ArrayList<>();
                                         List<String> arrivalCountries = new ArrayList<>();
@@ -701,12 +719,13 @@ class jj //find better name
                                         arrivalCountry = arrivalCountries.get(arrivalCityOption-1);
                                         //select an airline
                                         //fetch airlines from database (flights table)
-                                        String airlineQuery = "SELECT DISTINCT airline FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ?";
+                                        String airlineQuery = "SELECT DISTINCT airline FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND DATE(departure_date_time) = ?";
                                         try (PreparedStatement airlinePrepStatement = con.prepareStatement(airlineQuery)) {
                                             airlinePrepStatement.setString(1, departureCity);
                                             airlinePrepStatement.setString(2, departureCountry);
                                             airlinePrepStatement.setString(3, arrivalCity);
                                             airlinePrepStatement.setString(4, arrivalCountry);
+                                            airlinePrepStatement.setString(5, date);
                                             try (ResultSet resultSet3 = airlinePrepStatement.executeQuery()) {
                                                 List<String> airlines = new ArrayList<>();
                                                 while (resultSet3.next()) {
@@ -730,13 +749,14 @@ class jj //find better name
                                                 airline = airlines.get(airlineOption-1);
                                                 //select a fare class
                                                 //fetch fare classes from database (flights table)
-                                                String fareClassQuery = "SELECT DISTINCT fare_class FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ?";
+                                                String fareClassQuery = "SELECT DISTINCT fare_class FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND DATE(departure_date_time) = ?";
                                                 try (PreparedStatement fareClassPrepStatement = con.prepareStatement(fareClassQuery)) {
                                                     fareClassPrepStatement.setString(1, departureCity);
                                                     fareClassPrepStatement.setString(2, departureCountry);
                                                     fareClassPrepStatement.setString(3, arrivalCity);
                                                     fareClassPrepStatement.setString(4, arrivalCountry);
                                                     fareClassPrepStatement.setString(5, airline);
+                                                    fareClassPrepStatement.setString(6, date);
                                                     try (ResultSet resultSet4 = fareClassPrepStatement.executeQuery()) {
                                                         List<String> fareClasses = new ArrayList<>();
                                                         while (resultSet4.next()) {
@@ -776,22 +796,22 @@ class jj //find better name
                     switch (fareClass) {
                         case "Economy":
                             // Display economy class flight options
-                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND economy_seats > 0";
+                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND economy_seats > 0 AND DATE(departure_date_time) = ?";
                             fare = "economy_cost";
                             break;
                         case "Business":
                             // Display business class flight options
-                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND business_seats > 0";
+                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND business_seats > 0 AND DATE(departure_date_time) = ?";
                             fare = "business_cost";
                             break;
                         case "First Class":
                             // Display first class flight options
-                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND first_class_seats > 0";
+                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND first_class_seats > 0 AND DATE(departure_date_time) = ?";
                             fare = "first_class_cost";
                             break;
                         case "Premium Economy":
                             // Display premium economy class flight options
-                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND premium_economy_seats > 0";
+                            flightQuery = "SELECT flight_number, departure_date_time, flight_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND fare_class = ? AND premium_economy_seats > 0 AND DATE(departure_date_time) = ?";
                             fare = "premium_economy_cost";
                             break;
                     }
@@ -802,6 +822,7 @@ class jj //find better name
                         flightPrepStatement.setString(4, arrivalCountry);
                         flightPrepStatement.setString(5, airline);
                         flightPrepStatement.setString(6, fareClass);
+                        flightPrepStatement.setString(7, date);
                         // Process and display query results as a list
                         try (ResultSet resultSet = flightPrepStatement.executeQuery()) {
                             List<String> flightNumbers = new ArrayList<>();
