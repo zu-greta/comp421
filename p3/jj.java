@@ -1429,7 +1429,7 @@ class jj //find better name
                                         returnCities.add(resultSet.getString("city_name"));
                                         returnCountries.add(resultSet.getString("country"));
                                     }
-                                    System.out.println("Choose the pickup location: ");
+                                    System.out.println("Choose the return location: ");
                                     for (int i = 0; i < returnCities.size(); i++) {
                                         System.out.println("    " + (i+1) + ". " + returnCities.get(i) + ", " + returnCountries.get(i));
                                     }
