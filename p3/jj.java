@@ -56,12 +56,13 @@ class jj //find better name
             boolean run = true;
             while(run) {
                 System.out.println("\nBookings Main Menu: ");
-                System.out.println("    1. Find all booking total costs for a given user"); //query
+                System.out.println("    1. ?"); //change THIS
                 System.out.println("    2. Add a new booking for a user"); //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
                 System.out.println("    3. Update a registered user's profile information"); //query for user //update
                 System.out.println("    4. Flight Cancellation (for admins only)"); //query for flight bookings //query for next available flight //update bookings for all users //delete flight 
                 System.out.println("    5. Find all bookings for a given user (booking history)"); //query
-                System.out.println("    6. Quit");
+                System.out.println("    6. Find all booking total costs for a given user"); //query
+                System.out.println("    7. Quit");
                 System.out.print("Please Enter Your Option Number: ");
 
                 if (!scanner0.hasNextInt()) {
@@ -73,7 +74,7 @@ class jj //find better name
                     int option = scanner0.nextInt();
                     switch (option) {
                         case 1: //change THIS
-                            bookingTotalCosts(statement);
+                            bookingTotalCosts(statement, scanner0); //CHANGE
                             break;
                         case 2:
                             newBooking(con, statement, scanner0);
@@ -88,6 +89,9 @@ class jj //find better name
                             userHistory(statement);
                             break;
                         case 6:
+                            bookingTotalCosts(statement, scanner0);
+                            break;
+                        case 7:
                             run = false;
                             break;
                         default:
@@ -112,13 +116,18 @@ class jj //find better name
     
 
     // Method to query data
-    static void bookingTotalCosts(Statement statement) throws SQLException {
+    static void bookingTotalCosts(Statement statement, Scanner scanner) throws SQLException {
         // Taking user input for user id
         boolean flag = true;
         while (flag) {
             // Taking user input for user id
             System.out.print("Enter the user id: ");
-            int userId = Integer.parseInt(System.console().readLine());
+            if (!scanner.hasNextInt()) {
+                System.out.println("Invalid user id. Please try again.");
+                scanner.next();
+                continue;
+            }
+            int userId = scanner.nextInt();
             //check if user exists
             ResultSet resultSet = statement.executeQuery("SELECT user_id FROM Users WHERE user_id = " + userId);
             if (!resultSet.next()) {
@@ -134,9 +143,7 @@ class jj //find better name
                 " GROUP BY user_id) AS hotel ON flight.user_id = hotel.user_id FULL OUTER JOIN (SELECT user_id, " +
                 "SUM(car_rental_total_cost) AS car_rental_total_cost FROM CarRentalBooking WHERE user_id = " + userId + " GROUP BY " +
                 "user_id) AS car ON flight.user_id = car.user_id";
-
                 ResultSet resultSet2 = statement.executeQuery(query);
-
                 System.out.println("+------------+-------------------+------------------+-----------------------+");
                 System.out.println("| User ID    | Flight Total Cost | Hotel Total Cost | Car Rental Total Cost |");
                 System.out.println("+------------+-------------------+------------------+-----------------------+");
