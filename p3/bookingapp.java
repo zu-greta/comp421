@@ -669,7 +669,6 @@ class bookingapp
                 continue;
             }
             int bookingType = scanner.nextInt();
-            String fareClass = "";
             int year = 0;
             int month = 0;
             int day = 0;
@@ -692,6 +691,8 @@ class bookingapp
             double car_daily_cost = 0;
             String car_rental_agency = "";
             String insurance = "";
+            String fareseats = "";
+            String fclass = "";
             switch (bookingType) {
                 case 1:
                     // Flight booking
@@ -896,28 +897,27 @@ class bookingapp
                                                                     System.out.println("Invalid option. Please try again.");
                                                                     continue;
                                                                 }
-                                                                String fareseats = "";
                                                                 switch (fareClassOption) {
                                                                     case 1:
-                                                                        fareClass = "Economy";
+                                                                        fclass = "Economy";
                                                                         fareseats = "economy_seats";
                                                                         flightQuery = "SELECT flight_number, departure_date_time, economy_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND economy_seats > 0 AND DATE(departure_date_time) = ?";
                                                                         fare = "economy_cost";
                                                                         break;
                                                                     case 2:
-                                                                        fareClass = "Business";
+                                                                        fclass = "Business";
                                                                         fareseats = "business_seats";
                                                                         flightQuery = "SELECT flight_number, departure_date_time, business_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND business_seats > 0 AND DATE(departure_date_time) = ?";
                                                                         fare = "business_cost";
                                                                         break;
                                                                     case 3:
-                                                                        fareClass = "First Class";
+                                                                        fclass = "First";
                                                                         fareseats = "first_class_seats";
                                                                         flightQuery = "SELECT flight_number, departure_date_time, first_class_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND first_class_seats > 0 AND DATE(departure_date_time) = ?";
                                                                         fare = "first_class_cost";
                                                                         break;
                                                                     case 4:
-                                                                        fareClass = "Premium Economy";
+                                                                        fclass = "Premium";
                                                                         fareseats = "premium_economy_seats";
                                                                         flightQuery = "SELECT flight_number, departure_date_time, premium_economy_cost FROM Flights WHERE departure_city = ? AND departure_country = ? AND arrival_city = ? AND arrival_country = ? AND airline = ? AND premium_economy_seats > 0 AND DATE(departure_date_time) = ?";
                                                                         fare = "premium_economy_cost";
@@ -1066,7 +1066,7 @@ class bookingapp
                                     insertFlightPrepStatement.setString(4, flight_number);
                                     insertFlightPrepStatement.setString(5, departure_date_time);
                                     insertFlightPrepStatement.setDouble(6, flight_total_cost);
-                                    insertFlightPrepStatement.setString(7, fareClass);
+                                    insertFlightPrepStatement.setString(7, fclass);
                                     insertFlightPrepStatement.setString(8, seat);
                                     insertFlightPrepStatement.setDouble(9, flight_ticket_cost);
                                     insertFlightPrepStatement.setDouble(10, plane_ticket_surcharge);
