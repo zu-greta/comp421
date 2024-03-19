@@ -9,7 +9,7 @@ import javax.lang.model.type.NullType;
 
 import java.util.Random;
 
-class jj //find better name
+class test //find better name
 {
     public static void main ( String [ ] args ) throws SQLException
     {
@@ -83,7 +83,7 @@ class jj //find better name
                             deleteData(statement, scanner0);
                             break;
                         case 5: //add THIS
-                            userHistory(statement);
+                            userHistory(con, statement, scanner0);
                             break;
                         case 6:
                             run = false;
@@ -106,111 +106,6 @@ class jj //find better name
         }
         statement.close ( ) ;
         con.close ( ) ;
-/* 
-        // Creating a table
-        try
-        {
-          String createSQL = "CREATE TABLE " + tableName + " (id INTEGER, name VARCHAR (25)) ";
-          System.out.println (createSQL ) ;
-          statement.executeUpdate (createSQL ) ;
-          System.out.println ("DONE");
-        }
-        catch (SQLException e)
-        {
-          sqlCode = e.getErrorCode(); // Get SQLCODE
-          sqlState = e.getSQLState(); // Get SQLSTATE
-                
-          // Your code to handle errors comes here;
-          // something more meaningful than a print would be good
-          System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-          System.out.println(e);
-         }
-
-        // Inserting Data into the table
-        try
-        {
-          String insertSQL = "INSERT INTO " + tableName + " VALUES ( 1 , \'Vicki\' ) " ;
-          System.out.println ( insertSQL ) ;
-          statement.executeUpdate ( insertSQL ) ;
-          System.out.println ( "DONE" ) ;
-
-          insertSQL = "INSERT INTO " + tableName + " VALUES ( 2 , \'Vera\' ) " ;
-          System.out.println ( insertSQL ) ;
-          statement.executeUpdate ( insertSQL ) ;
-          System.out.println ( "DONE" ) ;
-          insertSQL = "INSERT INTO " + tableName + " VALUES ( 3 , \'Franca\' ) " ;
-          System.out.println ( insertSQL ) ;
-          statement.executeUpdate ( insertSQL ) ;
-          System.out.println ( "DONE" ) ;
-
-        }
-        catch (SQLException e)
-        {
-          sqlCode = e.getErrorCode(); // Get SQLCODE
-          sqlState = e.getSQLState(); // Get SQLSTATE
-                
-          // Your code to handle errors comes here;
-          // something more meaningful than a print would be good
-          System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-          System.out.println(e);
-        }
-
-        // Querying a table
-        try
-        {
-          String querySQL = "SELECT id, name from " + tableName + " WHERE NAME = \'Vicki\'";
-          System.out.println (querySQL) ;
-          java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
-
-          while ( rs.next ( ) )
-          {
-            int id = rs.getInt ( 1 ) ;
-            String name = rs.getString (2);
-            System.out.println ("id:  " + id);
-            System.out.println ("name:  " + name);
-          }
-         System.out.println ("DONE");
-        }
-        catch (SQLException e)
-        {
-          sqlCode = e.getErrorCode(); // Get SQLCODE
-          sqlState = e.getSQLState(); // Get SQLSTATE
-                
-          // Your code to handle errors comes here;
-          // something more meaningful than a print would be good
-          System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-          System.out.println(e);
-        }
-
-      //Updating a table
-      try
-      {
-        String updateSQL = "UPDATE " + tableName + " SET NAME = \'Mimi\' WHERE id = 3";
-        System.out.println(updateSQL);
-        statement.executeUpdate(updateSQL);
-        System.out.println("DONE");
-
-        // Dropping a table
-        String dropSQL = "DROP TABLE " + tableName;
-        System.out.println ( dropSQL ) ;
-        statement.executeUpdate ( dropSQL ) ;
-        System.out.println ("DONE");
-      }
-      catch (SQLException e)
-      {
-        sqlCode = e.getErrorCode(); // Get SQLCODE
-        sqlState = e.getSQLState(); // Get SQLSTATE
-                
-        // Your code to handle errors comes here;
-        // something more meaningful than a print would be good
-        System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-        System.out.println(e);
-      }
-
-      // Finally but importantly close the statement and connection
-      statement.close ( ) ;
-      con.close ( ) ;
-      */
     }
     
     static void registerUser(Connection con, Statement statement, Scanner scanner){
@@ -410,50 +305,6 @@ class jj //find better name
         }
     }
 
-
-    // Method to query data
-    static void bookingTotalCosts(Statement statement) throws SQLException {
-        // Taking user input for user id
-        boolean flag = true;
-        while (flag) {
-            // Taking user input for user id
-            System.out.print("Enter the user id: ");
-            int userId = Integer.parseInt(System.console().readLine());
-            //check if user exists
-            ResultSet resultSet = statement.executeQuery("SELECT user_id FROM Users WHERE user_id = " + userId);
-            if (!resultSet.next()) {
-                System.out.println("User does not exist. Please try again.");
-                continue;
-            }
-            else {
-                flag = false;
-                String query = "SELECT COALESCE(flight.user_id, hotel.user_id, car.user_id) AS user_id, flight.flight_total_cost AS flight_total_cost, " +
-                "hotel.hotel_total_cost AS hotel_total_cost, car.car_rental_total_cost AS car_rental_total_cost FROM (SELECT user_id, " +
-                "SUM(flight_total_cost) AS flight_total_cost FROM FlightBooking WHERE user_id = " + userId + " GROUP BY user_id) AS flight " +
-                "FULL OUTER JOIN (SELECT user_id, SUM(hotel_total_cost) AS hotel_total_cost FROM HotelBooking WHERE user_id = " + userId + 
-                " GROUP BY user_id) AS hotel ON flight.user_id = hotel.user_id FULL OUTER JOIN (SELECT user_id, " +
-                "SUM(car_rental_total_cost) AS car_rental_total_cost FROM CarRentalBooking WHERE user_id = " + userId + " GROUP BY " +
-                "user_id) AS car ON flight.user_id = car.user_id";
-
-                ResultSet resultSet2 = statement.executeQuery(query);
-
-                System.out.println("+------------+-------------------+------------------+-----------------------+");
-                System.out.println("| User ID    | Flight Total Cost | Hotel Total Cost | Car Rental Total Cost |");
-                System.out.println("+------------+-------------------+------------------+-----------------------+");
-                // Process and display query results
-                while (resultSet2.next()) {
-                    int resultUserId = resultSet2.getInt("user_id");
-                    double flightTotalCost = resultSet2.getDouble("flight_total_cost");
-                    double hotelTotalCost = resultSet2.getDouble("hotel_total_cost");
-                    double carRentalTotalCost = resultSet2.getDouble("car_rental_total_cost");
-                    System.out.printf("| %-10d | %-17.2f | %-16.2f | %-21.2f |\n", resultUserId, flightTotalCost, hotelTotalCost, carRentalTotalCost);
-                }
-                System.out.println("+------------+-------------------+------------------+-----------------------+");
-                resultSet2.close();
-            }
-            resultSet.close();
-        }   
-    }
 
     // Method to insert data
     //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) - either registered user or create a temp user
@@ -1607,29 +1458,123 @@ class jj //find better name
 
 
     // Method for querying Find all bookings for a given user (booking history)
-    static void userHistory(Statement statement) throws SQLException {
-        boolean flag = true;
-        while (flag) {
-            // Taking user input for user id
-            System.out.print("Enter the user id: ");
-            int userId = Integer.parseInt(System.console().readLine());
-            //check if user exists
-            ResultSet resultSet = statement.executeQuery("SELECT user_id FROM User WHERE user_id = " + userId);
-            if (!resultSet.next()) {
-                System.out.println("User does not exist. Please try again.");
-                resultSet.close();
-                continue;
-            }
-            else {
-                // Query for user bookings. in each bookings table, get all bookings for the user and display
-                // Process and display query results
-                while (resultSet.next()) {
-                    // Process each row of the result set
-                    // Example: String data = resultSet.getString("columnName");
+   
+    static void userHistory(Connection connection, Statement statement, Scanner scanner) throws SQLException{
+        boolean flag1 = true;
+        boolean flag2 = true;
+        scanner.nextLine();
+        int userId = 0;
+
+        try {
+            while (flag1) {
+                System.out.println("Enter username: ");
+                String username = scanner.nextLine();
+                if (username.length() > 10) {
+                    System.out.println("Invalid username. Please try again.");
+                    continue;
                 }
-                flag = false;
-                resultSet.close(); 
+                String query = "SELECT username FROM Registered WHERE username = ?";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(query)){
+                    preparedStatement.setString(1, username);
+                    try (ResultSet resultSet1 = preparedStatement.executeQuery()){
+                        
+                        if (!resultSet1.next()) {
+                            System.out.println("Username not found. Please try again.");
+                            continue;
+                        }
+                        else {
+                            //flag1 = false;
+                            boolean valid = false;
+
+                            for (int i=0; i<3; i++){
+                                System.out.println("Enter password: ");
+                                String password = scanner.nextLine();
+
+                                if (password.length() > 10 || password.length() < 1){
+                                    System.out.println("Invalid password. Please try again.");
+                                    i--;
+                                    continue;
+                                }
+                                String query2 = "SELECT user_id FROM Registered WHERE username = ? AND password = ?";
+                                try (PreparedStatement preparedStatement2 = connection.prepareStatement(query2)){
+                                    preparedStatement2.setString(1, username);
+                                    preparedStatement2.setString(2, password);
+                                    try (ResultSet resultSet2 = preparedStatement2.executeQuery()){
+                                        if (!resultSet2.next()){
+                                            System.out.println("Wrong password. Please try again.");
+                                        } else {
+                                            valid = true;
+                                            userId = resultSet2.getInt("user_id");
+                                            break;
+                                        }
+                                
+                                    }
+                                }
+                            }
+                            if (!valid){
+                                System.out.println("You have entered the wrong password too many times. Please try again later.");
+                                return;
+                            }
+                            flag1 = false;
+        
+                        }
+                    }
+                }
             }
+            System.out.println("User ID: " + userId); //REMOVE THIS LATER
+            String query1 = "SELECT * FROM FlightBooking WHERE user_id = ?";
+            String query2 = "SELECT * FROM HotelBooking WHERE user_id = ?";
+            String query3 = "SELECT * FROM CarRentalBooking WHERE user_id = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query1)){
+                preparedStatement.setInt(1, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()){
+                    // Display flight_ref_number, flight_number, hotel_ref_number, brand_affiliation, car_rental_ref_number, car_license_plate
+                    // Split into 3 tables for each booking type
+                    System.out.println("+---------------------------------+-------------------+");
+                    System.out.println("| Flight Booking Reference Number | Flight Number     |");    
+                    System.out.println("+---------------------------------+-------------------+");
+                    while (resultSet.next()) {
+                        int flightRefNumber = resultSet.getInt("flight_reference_number");
+                        String flightNumber = resultSet.getString("flight_number");
+                        System.out.printf("| %-31d | %-17s |\n", flightRefNumber, flightNumber);
+                        //System.out.printf("| %-31d | %-17d |\n", flightRefNumber, flightNumber);
+                    }
+                    System.out.println("+---------------------------------+-------------------+");
+                }
+            }
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query2)){
+                preparedStatement.setInt(1, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()){
+                    // Display hotel_ref_number, brand_affiliation
+                    System.out.println("+--------------------------+-------------------+");
+                    System.out.println("| Hotel Booking Reference  | Brand Affiliation |");
+                    System.out.println("+--------------------------+-------------------+");
+                    while (resultSet.next()) {
+                        int hotelRefNumber = resultSet.getInt("hotel_reference_number");
+                        String brandAffiliation = resultSet.getString("brand_affiliation");
+                        System.out.printf("| %-24d | %-17s |\n", hotelRefNumber, brandAffiliation);
+                    }
+                    System.out.println("+--------------------------+-------------------+");
+                }
+            }
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query3)){
+                preparedStatement.setInt(1, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()){
+                    // Display car_rental_ref_number, car_license_plate
+                    System.out.println("+--------------------------+-------------------+");
+                    System.out.println("| Car Rental Reference     | Car License Plate |");
+                    System.out.println("+--------------------------+-------------------+");
+                    while (resultSet.next()) {
+                        int carRentalRefNumber = resultSet.getInt("car_rental_reference_number");
+                        String carLicensePlate = resultSet.getString("car_license_plate");
+                        System.out.printf("| %-24d | %-17s |\n", carRentalRefNumber, carLicensePlate);
+                    }
+                    System.out.println("+--------------------------+-------------------+");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+   
     }
 }
