@@ -117,8 +117,6 @@ class test //find better name
         boolean flag6 = true;
         boolean flag7 = true;
         boolean flag8 = true;
-        boolean flag9 = true;
-        boolean flag10 = true;
 
         String name = null;
         String email = null;
@@ -1461,7 +1459,6 @@ class test //find better name
    
     static void userHistory(Connection connection, Statement statement, Scanner scanner) throws SQLException{
         boolean flag1 = true;
-        boolean flag2 = true;
         scanner.nextLine();
         int userId = 0;
 
