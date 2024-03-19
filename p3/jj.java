@@ -1,6 +1,8 @@
 //package p3; //remove when submitting
 
 import java.sql.* ;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -54,12 +56,13 @@ class jj //find better name
             boolean run = true;
             while(run) {
                 System.out.println("\nBookings Main Menu: ");
-                System.out.println("    1. Find all booking total costs for a given user"); //query
+                System.out.println("    1. ?"); //change THIS
                 System.out.println("    2. Add a new booking for a user"); //choose type (fight, hotel, car) //get info //query for options //book (create booking and insert) 
                 System.out.println("    3. Update a registered user's profile information"); //query for user //update
                 System.out.println("    4. Flight Cancellation (for admins only)"); //query for flight bookings //query for next available flight //update bookings for all users //delete flight 
                 System.out.println("    5. Find all bookings for a given user (booking history)"); //query
-                System.out.println("    6. Quit");
+                System.out.println("    6. Find all booking total costs for a given user"); //query
+                System.out.println("    7. Quit");
                 System.out.print("Please Enter Your Option Number: ");
 
                 if (!scanner0.hasNextInt()) {
@@ -71,7 +74,7 @@ class jj //find better name
                     int option = scanner0.nextInt();
                     switch (option) {
                         case 1: //change THIS
-                            bookingTotalCosts(statement);
+                            bookingTotalCosts(statement, scanner0); //CHANGE
                             break;
                         case 2:
                             newBooking(con, statement, scanner0);
@@ -86,6 +89,9 @@ class jj //find better name
                             userHistory(statement);
                             break;
                         case 6:
+                            bookingTotalCosts(statement, scanner0);
+                            break;
+                        case 7:
                             run = false;
                             break;
                         default:
@@ -106,122 +112,22 @@ class jj //find better name
         }
         statement.close ( ) ;
         con.close ( ) ;
-/* 
-        // Creating a table
-        try
-        {
-          String createSQL = "CREATE TABLE " + tableName + " (id INTEGER, name VARCHAR (25)) ";
-          System.out.println (createSQL ) ;
-          statement.executeUpdate (createSQL ) ;
-          System.out.println ("DONE");
-        }
-        catch (SQLException e)
-        {
-          sqlCode = e.getErrorCode(); // Get SQLCODE
-          sqlState = e.getSQLState(); // Get SQLSTATE
-                
-          // Your code to handle errors comes here;
-          // something more meaningful than a print would be good
-          System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-          System.out.println(e);
-         }
-
-        // Inserting Data into the table
-        try
-        {
-          String insertSQL = "INSERT INTO " + tableName + " VALUES ( 1 , \'Vicki\' ) " ;
-          System.out.println ( insertSQL ) ;
-          statement.executeUpdate ( insertSQL ) ;
-          System.out.println ( "DONE" ) ;
-
-          insertSQL = "INSERT INTO " + tableName + " VALUES ( 2 , \'Vera\' ) " ;
-          System.out.println ( insertSQL ) ;
-          statement.executeUpdate ( insertSQL ) ;
-          System.out.println ( "DONE" ) ;
-          insertSQL = "INSERT INTO " + tableName + " VALUES ( 3 , \'Franca\' ) " ;
-          System.out.println ( insertSQL ) ;
-          statement.executeUpdate ( insertSQL ) ;
-          System.out.println ( "DONE" ) ;
-
-        }
-        catch (SQLException e)
-        {
-          sqlCode = e.getErrorCode(); // Get SQLCODE
-          sqlState = e.getSQLState(); // Get SQLSTATE
-                
-          // Your code to handle errors comes here;
-          // something more meaningful than a print would be good
-          System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-          System.out.println(e);
-        }
-
-        // Querying a table
-        try
-        {
-          String querySQL = "SELECT id, name from " + tableName + " WHERE NAME = \'Vicki\'";
-          System.out.println (querySQL) ;
-          java.sql.ResultSet rs = statement.executeQuery ( querySQL ) ;
-
-          while ( rs.next ( ) )
-          {
-            int id = rs.getInt ( 1 ) ;
-            String name = rs.getString (2);
-            System.out.println ("id:  " + id);
-            System.out.println ("name:  " + name);
-          }
-         System.out.println ("DONE");
-        }
-        catch (SQLException e)
-        {
-          sqlCode = e.getErrorCode(); // Get SQLCODE
-          sqlState = e.getSQLState(); // Get SQLSTATE
-                
-          // Your code to handle errors comes here;
-          // something more meaningful than a print would be good
-          System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-          System.out.println(e);
-        }
-
-      //Updating a table
-      try
-      {
-        String updateSQL = "UPDATE " + tableName + " SET NAME = \'Mimi\' WHERE id = 3";
-        System.out.println(updateSQL);
-        statement.executeUpdate(updateSQL);
-        System.out.println("DONE");
-
-        // Dropping a table
-        String dropSQL = "DROP TABLE " + tableName;
-        System.out.println ( dropSQL ) ;
-        statement.executeUpdate ( dropSQL ) ;
-        System.out.println ("DONE");
-      }
-      catch (SQLException e)
-      {
-        sqlCode = e.getErrorCode(); // Get SQLCODE
-        sqlState = e.getSQLState(); // Get SQLSTATE
-                
-        // Your code to handle errors comes here;
-        // something more meaningful than a print would be good
-        System.out.println("Code: " + sqlCode + "  sqlState: " + sqlState);
-        System.out.println(e);
-      }
-
-      // Finally but importantly close the statement and connection
-      statement.close ( ) ;
-      con.close ( ) ;
-      */
     }
     
 
     // Method to query data
-    static void bookingTotalCosts(Statement statement) throws SQLException {
+    static void bookingTotalCosts(Statement statement, Scanner scanner) throws SQLException {
         // Taking user input for user id
         boolean flag = true;
         while (flag) {
             // Taking user input for user id
             System.out.print("Enter the user id: ");
-            int userId = Integer.parseInt(System.console().readLine());
+            if (!scanner.hasNextInt()) {
+                System.out.println("Invalid user id. Please try again.");
+                scanner.next();
+                continue;
+            }
+            int userId = scanner.nextInt();
             //check if user exists
             ResultSet resultSet = statement.executeQuery("SELECT user_id FROM Users WHERE user_id = " + userId);
             if (!resultSet.next()) {
@@ -237,9 +143,7 @@ class jj //find better name
                 " GROUP BY user_id) AS hotel ON flight.user_id = hotel.user_id FULL OUTER JOIN (SELECT user_id, " +
                 "SUM(car_rental_total_cost) AS car_rental_total_cost FROM CarRentalBooking WHERE user_id = " + userId + " GROUP BY " +
                 "user_id) AS car ON flight.user_id = car.user_id";
-
                 ResultSet resultSet2 = statement.executeQuery(query);
-
                 System.out.println("+------------+-------------------+------------------+-----------------------+");
                 System.out.println("| User ID    | Flight Total Cost | Hotel Total Cost | Car Rental Total Cost |");
                 System.out.println("+------------+-------------------+------------------+-----------------------+");
@@ -506,12 +410,12 @@ class jj //find better name
                                     double hotelTax = resultSet.getDouble("hotel_tax");
                                     double hotelBookingFees = resultSet.getDouble("hotel_booking_fees");
                                     String hotelBookingDate = resultSet.getString("hotel_booking_date");
-                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
-                                    System.out.println("| Hotel Reference No.  | User ID              | Room Number          | Brand Affiliation    | Hotel Address        | Checkin Date         | Checkout Date        | Hotel Total Cost     | Room Cost            | Hotel Tax            | Hotel Booking Fees    | Hotel Booking Date  |");
-                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
-                                    System.out.printf("| %-20d | %-20d | %-20d | %-20s | %-20s | %-20s | %-20s | %-20.2f | %-20.2f | %-20.2f | %-20.2f | %-20s |\n", hotelReferenceNumber, user_id, roomNumber, brandAffiliation, hotelAddress, checkinDate, checkoutDate, hotelTotalCost, roomCost, hotelTax, hotelBookingFees, hotelBookingDate);
+                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+------------------------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
+                                    System.out.println("| Hotel Reference No.  | User ID              | Room Number          | Brand Affiliation    | Hotel Address                            | Checkin Date         | Checkout Date        | Hotel Total Cost     | Room Cost            | Hotel Tax            | Hotel Booking Fees    | Hotel Booking Date  |");
+                                    System.out.println("+----------------------+----------------------+----------------------+----------------------+------------------------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
+                                    System.out.printf("| %-20d | %-20d | %-20d | %-20s | %-40s | %-20s | %-20s | %-20.2f | %-20.2f | %-20.2f | %-21.2f | %-19s |\n", hotelReferenceNumber, user_id, roomNumber, brandAffiliation, hotelAddress, checkinDate, checkoutDate, hotelTotalCost, roomCost, hotelTax, hotelBookingFees, hotelBookingDate);
                                 }
-                                System.out.println("+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
+                                System.out.println("+----------------------+----------------------+----------------------+----------------------+------------------------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-----------------------+---------------------+");
                                 // Print booking success message
                                 System.out.println("Booking successful");
                             }
@@ -537,12 +441,12 @@ class jj //find better name
                                     double carRentalBookingFees = resultSet.getDouble("car_rental_booking_fees");
                                     double carRentalTotalCost = resultSet.getDouble("car_rental_total_cost");
                                     String insurance = resultSet.getString("insurance");
-                                    System.out.println("+--------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------+");
-                                    System.out.println("| Car Rental Reference No. | User ID              | Car License Plate    | Pickup Location      | Return Location      | Pickup Date Time     | Return Date Time     | Car Rental Booking Date | Car Rental Cost      | Car Rental Tax       | Car Rental Booking Fees | Car Rental Total Cost | Insurance            |");
-                                    System.out.println("+--------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------+");
-                                    System.out.printf("| %-25d | %-20d | %-20s | %-20s | %-20s | %-20s | %-20s | %-20s | %-20.2f | %-20.2f | %-20.2f | %-20.2f | %-20s |\n", carRentalReferenceNumber, user_id, carLicensePlate, pickupLocation, returnLocation, pickupDateTime, returnDateTime, carRentalBookingDate, carRentalCost, carRentalTax, carRentalBookingFees, carRentalTotalCost, insurance);
+                                    System.out.println("+--------------------------+------------+----------------------+--------------------------------+--------------------------------+-----------------------+-----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------------------------------+");
+                                    System.out.println("| Car Rental Reference No. | User ID    | Car License Plate    | Pickup Location                | Return Location                | Pickup Date Time      | Return Date Time      | Car Rental Booking Date | Car Rental Cost      | Car Rental Tax       | Car Rental Booking Fees | Car Rental Total Cost | Insurance                                    |");
+                                    System.out.println("+--------------------------+------------+----------------------+--------------------------------+--------------------------------+-----------------------+-----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------------------------------+");
+                                    System.out.printf("| %-24d | %-10d | %-20s | %-30s | %-30s | %-21s | %-21s | %-23s | %-20.2f | %-20.2f | %-23.2f | %-21.2f | %-44s |\n", carRentalReferenceNumber, user_id, carLicensePlate, pickupLocation, returnLocation, pickupDateTime, returnDateTime, carRentalBookingDate, carRentalCost, carRentalTax, carRentalBookingFees, carRentalTotalCost, insurance);
                                 }
-                                System.out.println("+--------------------------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------+");
+                                System.out.println("+--------------------------+------------+----------------------+--------------------------------+--------------------------------+-----------------------+-----------------------+-------------------------+----------------------+----------------------+-------------------------+-----------------------+----------------------------------------------+");
                                 // Print booking success message
                                 System.out.println("Booking successful");
                             }
@@ -570,21 +474,32 @@ class jj //find better name
                 continue;
             }
             int bookingType = scanner.nextInt();
+            String fareClass = "";
+            int year = 0;
+            int month = 0;
+            int day = 0;
+            int ryear = 0;
+            int rmonth = 0;
+            int rday = 0;
+            String departureCity ="";
+            String departureCountry = "";
+            String arrivalCity = "";
+            String arrivalCountry = "";
+            String airline = "";
+            String date = "";
+            String rdate = "";
+            String flightQuery = "";
+            String fare="";
+            String returnCity = "";
+            String pickupCity = "";
+            String pickupCountry = "";
+            String car_license_plate = "";
+            double car_daily_cost = 0;
+            String car_rental_agency = "";
+            String insurance = "";
             switch (bookingType) {
                 case 1:
                     // Flight booking
-                    String fareClass = "";
-                    int year = 0;
-                    int month = 0;
-                    int day = 0;
-                    String departureCity ="";
-                    String departureCountry = "";
-                    String arrivalCity = "";
-                    String arrivalCountry = "";
-                    String airline = "";
-                    String date = "";
-                    String flightQuery = "";
-                    String fare="";
                     // Get flight info from user: departure date, airline, fare class, departure city and country, arrival city and country
                     while(true){
                         //select a year
@@ -971,30 +886,692 @@ class jj //find better name
                     }
                 case 2:
                     // Hotel booking
-                    // Get hotel info from user: check-in date, check-out date, city, country, number of rooms, number of guests
+                    // Get hotel info from user: check-in date, check-out date, city, country
+                    LocalDate indate = LocalDate.of(2024, 03, 14);
+                    LocalDate outdate = LocalDate.of(2024, 03, 15);
+                    String City = "";
+                    String Country = "";
+                    String hotel_address = "";
+                    String brand_affiliation = "";
+                    int room_number = 0;
+                    double room_price = 0;
+                    while(true) {
+                        //select a pickup date
+                        System.out.println("Choose the checkin date: ");
+                        System.out.println("    2024");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        year = scanner.nextInt();
+                        if (year != 2024) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a month
+                        System.out.println("Choose the month: ");
+                        System.out.println("    1. January");
+                        System.out.println("    2. February");
+                        System.out.println("    3. March");
+                        System.out.println("    4. April");
+                        System.out.println("    5. May");
+                        System.out.println("    6. June");
+                        System.out.println("    7. July");
+                        System.out.println("    8. August");
+                        System.out.println("    9. September");
+                        System.out.println("    10. October");
+                        System.out.println("    11. November");
+                        System.out.println("    12. December");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        month = scanner.nextInt();
+                        if (month < 1 || month > 12) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a day
+                        System.out.print("Choose the day: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        day = scanner.nextInt();
+                        if (day < 1 || day > 31) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        String dday = "";
+                        if (day >= 1 && day <= 9) {
+                            //add a 0 in front of the day
+                            dday = "0" + day;
+                        }
+                        else {
+                            dday = "" + day;
+                        }
+                        String mmonth = "";
+                        if (month >= 1 && month <= 9) {
+                            //add a 0 in front of the month
+                            mmonth = "0" + month;
+                        }
+                        else {
+                            mmonth = "" + month;
+                        }
+                        date = year + "-" + mmonth + "-" + dday;
+                        indate = LocalDate.of(year, month, day);
+                        //get return date time
+                        System.out.println("Choose the checkout date: ");
+                        System.out.println("    2024");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        ryear = scanner.nextInt();
+                        if (ryear != 2024) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a month
+                        System.out.println("Choose the month: ");
+                        System.out.println("    1. January");
+                        System.out.println("    2. February");
+                        System.out.println("    3. March");
+                        System.out.println("    4. April");
+                        System.out.println("    5. May");
+                        System.out.println("    6. June");
+                        System.out.println("    7. July");
+                        System.out.println("    8. August");
+                        System.out.println("    9. September");
+                        System.out.println("    10. October");
+                        System.out.println("    11. November");
+                        System.out.println("    12. December");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        rmonth = scanner.nextInt();
+                        if (rmonth < 1 || rmonth > 12) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a day
+                        System.out.print("Choose the day: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        rday = scanner.nextInt();
+                        if (day < 1 || day > 31) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        String rdday = "";
+                        if (rday >= 1 && rday <= 9) {
+                            //add a 0 in front of the day
+                            rdday = "0" + rday;
+                        }
+                        else {
+                            rdday = "" + rday;
+                        }
+                        String rmmonth = "";
+                        if (rmonth >= 1 && rmonth <= 9) {
+                            //add a 0 in front of the month
+                            rmmonth = "0" + rmonth;
+                        }
+                        else {
+                            rmmonth = "" + rmonth;
+                        }
+                        rdate = ryear + "-" + rmmonth + "-" + rdday;
+                        outdate = LocalDate.of(ryear, rmonth, rday);
+                        if (indate.isAfter(outdate)) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        boolean flag13 = true;
+                        while(flag13) {
+                            //get the location 
+                            String inAvail = "SELECT DISTINCT city_name, country FROM Hotel";
+                            try (PreparedStatement inPrepStatement = con.prepareStatement(inAvail)) {
+                                try (ResultSet resultSet = inPrepStatement.executeQuery()) {
+                                    List<String> inCities = new ArrayList<>();
+                                    List<String> inCountries = new ArrayList<>();
+                                    while (resultSet.next()) {
+                                        inCities.add(resultSet.getString("city_name"));
+                                        inCountries.add(resultSet.getString("country"));
+                                    }
+                                    System.out.println("Choose the pickup location: ");
+                                    for (int i = 0; i < inCities.size(); i++) {
+                                        System.out.println("    " + (i+1) + ". " + inCities.get(i) + ", " + inCountries.get(i));
+                                    }
+                                    System.out.print("Please Enter Your Option Number: ");
+                                    if (!scanner.hasNextInt()) {
+                                        System.out.println("Invalid option. Please try again.");
+                                        scanner.next();
+                                        continue;
+                                    }
+                                    int pickupOption = scanner.nextInt();
+                                    if (pickupOption < 1 || pickupOption > inCities.size()) {
+                                        System.out.println("Invalid option. Please try again.");
+                                        continue;
+                                    }
+                                    City = inCities.get(pickupOption-1);
+                                    Country = inCountries.get(pickupOption-1);
+                                    flag13 = false;
+                                }
+                            }
+                        } 
+                        //check if there are any rooms available, if there isnt then return to the date choosing
+                        String roomAvail = "SELECT room_number FROM Room JOIN Hotel ON room.hotel_address = hotel.hotel_address AND room.brand_affiliation = hotel.brand_affiliation WHERE city_name = ? AND country = ? AND room_number NOT IN (SELECT room_number FROM HotelBooking WHERE (checkin_date BETWEEN ? AND ?) OR (checkout_date BETWEEN ? AND ?) OR (checkin_date < ? AND checkout_date > ?))";
+                        try (PreparedStatement roomPrepStatement = con.prepareStatement(roomAvail)) {
+                            roomPrepStatement.setString(1, City);
+                            roomPrepStatement.setString(2, Country);
+                            roomPrepStatement.setString(3, date);
+                            roomPrepStatement.setString(4, rdate);
+                            roomPrepStatement.setString(5, date);
+                            roomPrepStatement.setString(6, rdate);
+                            roomPrepStatement.setString(7, date);
+                            roomPrepStatement.setString(8, rdate);
+                            try (ResultSet resultSet = roomPrepStatement.executeQuery()) {
+                                if (!resultSet.next()) {
+                                    System.out.println("There are no available rooms on those days. Please try again.");
+                                    continue;
+                                }
+                            }
+                        }
+                        break;
+                    }
                     // Query for hotel options using the given info
-                    // Display hotel options as a sub menu to choose from
-                    // Get user input for hotel option
+                    String hotelOptionQuery = "SELECT brand_affiliation, hotel_address FROM Hotel WHERE city_name = ? AND country = ?";
+                    // Display hotel options that have available rooms as a sub menu to choose from 
+                    try (PreparedStatement hotelPreparedStatement = con.prepareStatement(hotelOptionQuery)) {
+                        hotelPreparedStatement.setString(1, City);
+                        hotelPreparedStatement.setString(2, Country);
+                        try (ResultSet resultSet = hotelPreparedStatement.executeQuery()) {
+                            List<String> brandAffiliations = new ArrayList<>();
+                            List<String> hotelAddresses = new ArrayList<>();
+                            System.out.println("+---------+----------------------+------------------------------------------+");
+                            System.out.println("| Opt. no.| Brand Affiliation    | Hotel Address                            |");
+                            System.out.println("+---------+----------------------+------------------------------------------+");
+                            int i = 0;
+                            while (resultSet.next()) {
+                                i++;
+                                String brandAffiliation = resultSet.getString("brand_affiliation");
+                                String hotelAddress = resultSet.getString("hotel_address");
+                                brandAffiliations.add(brandAffiliation);
+                                hotelAddresses.add(hotelAddress);
+                                System.out.printf("| %-7d | %-20s | %-40s |\n", i, brandAffiliation, hotelAddress);
+                            }
+                            System.out.println("+---------+----------------------+------------------------------------------+");
+                            // Get user input for hotel option
+                            System.out.print("Please Enter Your Option Number: ");
+                            if (!scanner.hasNextInt()) {
+                                System.out.println("Invalid option. Please try again.");
+                                scanner.next();
+                                continue;
+                            }
+                            int hotelOption = scanner.nextInt();
+                            if (hotelOption < 1 || hotelOption > brandAffiliations.size()) {
+                                System.out.println("Invalid option. Please try again.");
+                                continue;
+                            }
+                            brand_affiliation = brandAffiliations.get(hotelOption-1);
+                            hotel_address = hotelAddresses.get(hotelOption-1);
+                        }
+                    }
                     // Display room options as a sub menu to choose from
-                    // Get user input for room option
+                    String roomOptionQuery = "SELECT room_number, room_name, beds, room_capacity, beds, room_price, size, free_wifi, view, minibar, private_bathroom, smoking FROM Room JOIN Hotel ON room.brand_affiliation = hotel.brand_affiliation AND room.hotel_address = hotel.hotel_address WHERE city_name = ? AND country = ? AND room_number NOT IN (SELECT room_number FROM HotelBooking WHERE (checkin_date BETWEEN ? AND ?) OR (checkout_date BETWEEN ? AND ?) OR (checkin_date < ? AND checkout_date > ?))";
+                    boolean flag14 = true;
+                    while(flag14) {
+                        try (PreparedStatement roomPreparedStatement = con.prepareStatement(roomOptionQuery)) {
+                            roomPreparedStatement.setString(1, City);
+                            roomPreparedStatement.setString(2, Country);
+                            roomPreparedStatement.setString(3, date);
+                            roomPreparedStatement.setString(4, rdate);
+                            roomPreparedStatement.setString(5, date);
+                            roomPreparedStatement.setString(6, rdate);
+                            roomPreparedStatement.setString(7, date);
+                            roomPreparedStatement.setString(8, rdate);
+                            try (ResultSet resultSet = roomPreparedStatement.executeQuery()) {
+                                List<Integer> roomNumbers = new ArrayList<>();
+                                List<String> roomNames = new ArrayList<>();
+                                List<Integer> roomCapacities = new ArrayList<>();
+                                List<String> roomBeds = new ArrayList<>();
+                                List<Double> roomPrices = new ArrayList<>();
+                                List<String> roomSizes = new ArrayList<>();
+                                List<String> freeWifis = new ArrayList<>();
+                                List<String> views = new ArrayList<>();
+                                List<String> minibars = new ArrayList<>();
+                                List<String> privateBathrooms = new ArrayList<>();
+                                List<String> smokings = new ArrayList<>();
+                                System.out.println("+---------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------+----------------------+---------+------------------+---------+");
+                                System.out.println("| Opt. no.| Room Number          | Room Name            | Room Capacity        | Beds                 | Room Price           | Size                 | Free Wifi   | View                 | Minibar | Private Bathroom | Smoking |");
+                                System.out.println("+---------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------+----------------------+---------+------------------+---------+");
+                                int i = 0;
+                                while (resultSet.next()) {
+                                    i++;
+                                    int roomNumber = resultSet.getInt("room_number");
+                                    String roomName = resultSet.getString("room_name");
+                                    int roomCapacity = resultSet.getInt("room_capacity");
+                                    String beds = resultSet.getString("beds");
+                                    double roomPrice = resultSet.getDouble("room_price");
+                                    String roomSize = resultSet.getString("size");
+                                    String freeWifi = resultSet.getString("free_wifi");
+                                    String view = resultSet.getString("view");
+                                    String minibar = resultSet.getString("minibar");
+                                    String privateBathroom = resultSet.getString("private_bathroom");
+                                    String smoking = resultSet.getString("smoking");
+                                    roomNumbers.add(roomNumber);
+                                    roomNames.add(roomName);
+                                    roomCapacities.add(roomCapacity);
+                                    roomBeds.add(beds);
+                                    roomPrices.add(roomPrice);
+                                    roomSizes.add(roomSize);
+                                    freeWifis.add(freeWifi);
+                                    views.add(view);
+                                    minibars.add(minibar);
+                                    privateBathrooms.add(privateBathroom);
+                                    smokings.add(smoking);
+                                    System.out.printf("| %-7d | %-20d | %-20s | %-20d | %-20s | %-20.2f | %-20s | %-11s | %-20s | %-7s | %-16s | %-7s |\n", i, roomNumber, roomName, roomCapacity, beds, roomPrice, roomSize, freeWifi, view, minibar, privateBathroom, smoking);
+                                }
+                                System.out.println("+---------+----------------------+----------------------+----------------------+----------------------+----------------------+----------------------+-------------+----------------------+---------+------------------+---------+");
+                                // Get user input for room option
+                                System.out.print("Please Enter Your Option Number: ");
+                                if (!scanner.hasNextInt()) {
+                                    System.out.println("Invalid option. Please try again.");
+                                    scanner.next();
+                                    continue;
+                                }
+                                int roomOption = scanner.nextInt();
+                                if (roomOption < 1 || roomOption > roomNumbers.size()) {
+                                    System.out.println("Invalid option. Please try again.");
+                                    continue;
+                                }
+                                room_number = roomNumbers.get(roomOption-1);
+                                room_price = roomPrices.get(roomOption-1);
+                                flag14 = false;
+                            }
+                        }
+                    }
                     // Book hotel room by getting user input for booking info (user ID, checkin date, chekout date)
                     // and info from room selected (room number),
                     // and info from hotel selected (brand affiliation, hotel address)
                     // calculate costs (hotel toatal cost, hotel tax, hotel booking fees, hotel booking date),
+                    double room_cost = (double) ChronoUnit.DAYS.between(indate, outdate) * room_price;
+                    double hotel_tax = 0.15 * room_cost;
+                    double hotel_booking_fees = 15;
+                    double hotel_total_cost = room_cost + hotel_tax + hotel_booking_fees;
+                    String hotel_booking_date = java.time.LocalDate.now().toString();
                     // generate a hotel reference number,
+                    ResultSet roomRef = statement.executeQuery("SELECT MAX(hotel_reference_number) FROM HotelBooking");
+                    roomRef.next();
+                    int hotel_reference_number = roomRef.getInt(1) + 1;
                     // and insert into HotelBooking table
+                    String insertHotelQuery = "INSERT INTO HotelBooking VALUES (?,?,?,?,?,?,?,?,?,?,?,?)";
+                    try (PreparedStatement insertHotelPrepStatement = con.prepareStatement(insertHotelQuery)) {
+                        insertHotelPrepStatement.setInt(1, hotel_reference_number);
+                        insertHotelPrepStatement.setInt(2, userID);
+                        insertHotelPrepStatement.setInt(3, room_number);
+                        insertHotelPrepStatement.setString(4, brand_affiliation);
+                        insertHotelPrepStatement.setString(5, hotel_address);
+                        insertHotelPrepStatement.setString(6, date);
+                        insertHotelPrepStatement.setString(7, rdate);
+                        insertHotelPrepStatement.setDouble(8, hotel_total_cost);
+                        insertHotelPrepStatement.setDouble(9, room_cost);
+                        insertHotelPrepStatement.setDouble(10, hotel_tax);
+                        insertHotelPrepStatement.setDouble(11, hotel_booking_fees);
+                        insertHotelPrepStatement.setString(12, hotel_booking_date);
+                        insertHotelPrepStatement.executeUpdate();
+                    }
                     return bookingType;
                 case 3:
                     // Car rental booking
                     // Get car rental info from user: pickup date time, return date time, pickup location, return location
+                    LocalDate pickupdate = LocalDate.of(2024, 03, 14);
+                    LocalDate returndate = LocalDate.of(2024, 03, 15);
+                    String carOptionQuery = "SELECT car_license_plate, number_of_seats, car_rental_agency, transmission_type, car_model, car_engine_type, car_daily_cost, company_policy, AC, carplay FROM Car WHERE city_name = ? AND country = ? AND car_license_plate NOT IN (SELECT car_license_plate FROM CarRentalBooking WHERE (pickup_date_time BETWEEN ? AND ?) OR (return_date_time BETWEEN ? AND ?) OR (pickup_date_time < ? AND return_date_time > ?))";
+                    while(true) {
+                        //select a pickup date
+                        System.out.println("Choose the pickup date: ");
+                        System.out.println("    2024");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        year = scanner.nextInt();
+                        if (year != 2024) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a month
+                        System.out.println("Choose the month: ");
+                        System.out.println("    1. January");
+                        System.out.println("    2. February");
+                        System.out.println("    3. March");
+                        System.out.println("    4. April");
+                        System.out.println("    5. May");
+                        System.out.println("    6. June");
+                        System.out.println("    7. July");
+                        System.out.println("    8. August");
+                        System.out.println("    9. September");
+                        System.out.println("    10. October");
+                        System.out.println("    11. November");
+                        System.out.println("    12. December");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        month = scanner.nextInt();
+                        if (month < 1 || month > 12) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a day
+                        System.out.print("Choose the day: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        day = scanner.nextInt();
+                        if (day < 1 || day > 31) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        String dday = "";
+                        if (day >= 1 && day <= 9) {
+                            //add a 0 in front of the day
+                            dday = "0" + day;
+                        }
+                        else {
+                            dday = "" + day;
+                        }
+                        String mmonth = "";
+                        if (month >= 1 && month <= 9) {
+                            //add a 0 in front of the month
+                            mmonth = "0" + month;
+                        }
+                        else {
+                            mmonth = "" + month;
+                        }
+                        date = year + "-" + mmonth + "-" + dday;
+                        pickupdate = LocalDate.of(year, month, day);
+                        //get return date time
+                        System.out.println("Choose the return date: ");
+                        System.out.println("    2024");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        ryear = scanner.nextInt();
+                        if (ryear != 2024) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a month
+                        System.out.println("Choose the month: ");
+                        System.out.println("    1. January");
+                        System.out.println("    2. February");
+                        System.out.println("    3. March");
+                        System.out.println("    4. April");
+                        System.out.println("    5. May");
+                        System.out.println("    6. June");
+                        System.out.println("    7. July");
+                        System.out.println("    8. August");
+                        System.out.println("    9. September");
+                        System.out.println("    10. October");
+                        System.out.println("    11. November");
+                        System.out.println("    12. December");
+                        System.out.print("Please Enter Your Option Number: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        rmonth = scanner.nextInt();
+                        if (rmonth < 1 || rmonth > 12) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        //select a day
+                        System.out.print("Choose the day: ");
+                        if (!scanner.hasNextInt()) {
+                            System.out.println("Invalid option. Please try again.");
+                            scanner.next();
+                            continue;
+                        }
+                        rday = scanner.nextInt();
+                        if (day < 1 || day > 31) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        String rdday = "";
+                        if (rday >= 1 && rday <= 9) {
+                            //add a 0 in front of the day
+                            rdday = "0" + rday;
+                        }
+                        else {
+                            rdday = "" + rday;
+                        }
+                        String rmmonth = "";
+                        if (rmonth >= 1 && rmonth <= 9) {
+                            //add a 0 in front of the month
+                            rmmonth = "0" + rmonth;
+                        }
+                        else {
+                            rmmonth = "" + rmonth;
+                        }
+                        rdate = ryear + "-" + rmmonth + "-" + rdday;
+                        returndate = LocalDate.of(ryear, rmonth, rday);
+                        if (pickupdate.isAfter(returndate)) {
+                            System.out.println("Invalid option. Please try again.");
+                            continue;
+                        }
+                        boolean flag9 = true;
+                        while(flag9) {
+                            //get the pickup location 
+                            String pickupAvail = "SELECT DISTINCT city_name, country FROM Car";
+                            try (PreparedStatement pickupPrepStatement = con.prepareStatement(pickupAvail)) {
+                                try (ResultSet resultSet = pickupPrepStatement.executeQuery()) {
+                                    List<String> pickupCities = new ArrayList<>();
+                                    List<String> pickupCountries = new ArrayList<>();
+                                    while (resultSet.next()) {
+                                        pickupCities.add(resultSet.getString("city_name"));
+                                        pickupCountries.add(resultSet.getString("country"));
+                                    }
+                                    System.out.println("Choose the pickup location: ");
+                                    for (int i = 0; i < pickupCities.size(); i++) {
+                                        System.out.println("    " + (i+1) + ". " + pickupCities.get(i) + ", " + pickupCountries.get(i));
+                                    }
+                                    System.out.print("Please Enter Your Option Number: ");
+                                    if (!scanner.hasNextInt()) {
+                                        System.out.println("Invalid option. Please try again.");
+                                        scanner.next();
+                                        continue;
+                                    }
+                                    int pickupOption = scanner.nextInt();
+                                    if (pickupOption < 1 || pickupOption > pickupCities.size()) {
+                                        System.out.println("Invalid option. Please try again.");
+                                        continue;
+                                    }
+                                    pickupCity = pickupCities.get(pickupOption-1);
+                                    pickupCountry = pickupCountries.get(pickupOption-1);
+                                    flag9=false;
+                                }
+                            }
+                        }
+                        //get return location
+                        boolean flag10 = true;
+                        while(flag10) {
+                            //get the pickup location 
+                            String returnAvail = "SELECT DISTINCT city_name, country FROM Car";
+                            try (PreparedStatement returnPrepStatement = con.prepareStatement(returnAvail)) {
+                                try (ResultSet resultSet = returnPrepStatement.executeQuery()) {
+                                    List<String> returnCities = new ArrayList<>();
+                                    List<String> returnCountries = new ArrayList<>();
+                                    while (resultSet.next()) {
+                                        returnCities.add(resultSet.getString("city_name"));
+                                        returnCountries.add(resultSet.getString("country"));
+                                    }
+                                    System.out.println("Choose the return location: ");
+                                    for (int i = 0; i < returnCities.size(); i++) {
+                                        System.out.println("    " + (i+1) + ". " + returnCities.get(i) + ", " + returnCountries.get(i));
+                                    }
+                                    System.out.print("Please Enter Your Option Number: ");
+                                    if (!scanner.hasNextInt()) {
+                                        System.out.println("Invalid option. Please try again.");
+                                        scanner.next();
+                                        continue;
+                                    }
+                                    int pickupOption = scanner.nextInt();
+                                    if (pickupOption < 1 || pickupOption > returnCities.size()) {
+                                        System.out.println("Invalid option. Please try again.");
+                                        continue;
+                                    }
+                                    returnCity = returnCities.get(pickupOption-1);
+                                    flag10 = false;
+                                }
+                            }
+                        } 
+                        //check if there are any, if there isnt then return to the date choosing
+                        try (PreparedStatement carOptionPrepStatement = con.prepareStatement(carOptionQuery)) {
+                            carOptionPrepStatement.setString(1, pickupCity);
+                            carOptionPrepStatement.setString(2, pickupCountry);
+                            carOptionPrepStatement.setString(3, date);
+                            carOptionPrepStatement.setString(4, rdate);
+                            carOptionPrepStatement.setString(5, date);
+                            carOptionPrepStatement.setString(6, rdate);
+                            carOptionPrepStatement.setString(7, date);
+                            carOptionPrepStatement.setString(8, rdate);
+                            try (ResultSet resultSet = carOptionPrepStatement.executeQuery()) {
+                                if (!resultSet.next()) {
+                                    System.out.println("There are no available cars for that date. Please try again.");
+                                    continue;
+                                }
+                            }
+                        } break;
+                    }
                     // Query for car rental options using the given info
-                    // Display car rental options as a sub menu to choose from
-                    // Get user input for car rental option
+                    boolean flag11 = true;
+                    while(flag11) {
+                        // Display car rental options as a sub menu to choose from
+                        try (PreparedStatement carOptionPrepStatement = con.prepareStatement(carOptionQuery)) {
+                            carOptionPrepStatement.setString(1, pickupCity);
+                            carOptionPrepStatement.setString(2, pickupCountry);
+                            carOptionPrepStatement.setString(3, date);
+                            carOptionPrepStatement.setString(4, rdate);
+                            carOptionPrepStatement.setString(5, date);
+                            carOptionPrepStatement.setString(6, rdate);
+                            carOptionPrepStatement.setString(7, date);
+                            carOptionPrepStatement.setString(8, rdate);
+                            try (ResultSet resultSet = carOptionPrepStatement.executeQuery()) {
+                                List<String> carLicensePlates = new ArrayList<>();
+                                List<Integer> numberOfSeats = new ArrayList<>();
+                                List<String> carRentalAgencies = new ArrayList<>();
+                                List<String> transmissionTypes = new ArrayList<>();
+                                List<String> carModels = new ArrayList<>();
+                                List<String> carEngineTypes = new ArrayList<>();
+                                List<Double> carDailyCosts = new ArrayList<>();
+                                List<String> companyPolicies = new ArrayList<>();
+                                List<String> ACs = new ArrayList<>();
+                                List<String> carplays = new ArrayList<>();
+                                System.out.println("+---------+----------------------+----------------------+----------------------+----------------------+---------------------------+----------------------+----------------------+-----------------------------------------------+--------+---------+");
+                                System.out.println("| Opt. nu.| Car License Plate    | Number of Seats      | Car Rental Agency    | Transmission Type    | Car Model                 | Car Engine Type      | Car Daily Cost       | Company Policy                                | AC     | Carplay |");
+                                System.out.println("+---------+----------------------+----------------------+----------------------+----------------------+---------------------------+----------------------+----------------------+-----------------------------------------------+--------+---------+");
+                                int i = 0;
+                                while (resultSet.next()) {
+                                    i++; // Increment the counter
+                                    String carLicensePlate = resultSet.getString("car_license_plate");
+                                    int numberOfSeat = resultSet.getInt("number_of_seats");
+                                    String carRentalAgency = resultSet.getString("car_rental_agency");
+                                    String transmissionType = resultSet.getString("transmission_type");
+                                    String carModel = resultSet.getString("car_model");
+                                    String carEngineType = resultSet.getString("car_engine_type");
+                                    double carDailyCost = resultSet.getDouble("car_daily_cost");
+                                    String companyPolicy = resultSet.getString("company_policy");
+                                    String AC = resultSet.getString("AC");
+                                    String carplay = resultSet.getString("carplay");
+                                    carLicensePlates.add(carLicensePlate);
+                                    numberOfSeats.add(numberOfSeat);
+                                    carRentalAgencies.add(carRentalAgency);
+                                    transmissionTypes.add(transmissionType);
+                                    carModels.add(carModel);
+                                    carEngineTypes.add(carEngineType);
+                                    carDailyCosts.add(carDailyCost);
+                                    companyPolicies.add(companyPolicy);
+                                    ACs.add(AC);
+                                    carplays.add(carplay);
+                                    System.out.printf("| %-7d | %-20s | %-20d | %-20s | %-20s | %-25s | %-20s | %-20.2f | %-45s | %-6s | %-7s |\n", i, carLicensePlate, numberOfSeat, carRentalAgency, transmissionType, carModel, carEngineType, carDailyCost, companyPolicy, AC, carplay);
+                                }
+                                System.out.println("+---------+----------------------+----------------------+----------------------+----------------------+---------------------------+----------------------+----------------------+-----------------------------------------------+--------+---------+");
+                                // Get user input for car rental option
+                                System.out.print("Please Enter Your Option Number: ");
+                                if (!scanner.hasNextInt()) {
+                                    System.out.println("Invalid option. Please try again.");
+                                    scanner.next();
+                                    continue;
+                                }
+                                int carOption = scanner.nextInt();
+                                if (carOption < 1 || carOption > carLicensePlates.size()) {
+                                    System.out.println("Invalid option. Please try again.");
+                                    continue;
+                                }
+                                flag11 = false;
+                                // get the car_license_plate
+                                car_license_plate = carLicensePlates.get(carOption-1);
+                                car_daily_cost = carDailyCosts.get(carOption-1);
+                                car_rental_agency = carRentalAgencies.get(carOption-1);
+                                insurance = companyPolicies.get(carOption-1);
+                            }
+                        }
+                    }
                     // Book car rental by getting user input for booking info (user ID, pickup date time, return date time, pickup location, return location)
                     // and info from car rental selected (car ar license plate, insurance)
                     // calculate costs (car rental total cost, car rental tax, car rental booking fees, car rental booking date),
+                    //car rental cost = (return date time - pickup date time) * car daily cost
+                    double car_rental_cost = (double) ChronoUnit.DAYS.between(pickupdate, returndate) * car_daily_cost;
+                    double car_rental_tax = 0.15 * car_rental_cost;
+                    double car_rental_booking_fees = 15;
+                    double car_rental_total_cost = car_rental_cost + car_rental_tax + car_rental_booking_fees;
+                    String car_rental_booking_date = java.time.LocalDate.now().toString();
                     // generate a car rental reference number,
+                    ResultSet carRef = statement.executeQuery("SELECT MAX(car_rental_reference_number) FROM CarRentalBooking");
+                    carRef.next();
+                    int car_rental_reference_number = carRef.getInt(1) + 1;
                     // and insert into CarRentalBooking table
+                    String insertCarQuery = "INSERT INTO CarRentalBooking VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                    try (PreparedStatement insertCarPrepStatement = con.prepareStatement(insertCarQuery)) {
+                        insertCarPrepStatement.setInt(1, car_rental_reference_number);
+                        insertCarPrepStatement.setInt(2, userID);
+                        insertCarPrepStatement.setString(3, car_license_plate);
+                        insertCarPrepStatement.setString(4, car_rental_agency + " " + pickupCity);
+                        insertCarPrepStatement.setString(5, car_rental_agency + " " + returnCity);
+                        insertCarPrepStatement.setString(6, pickupdate.toString() + " 10:00:00");
+                        insertCarPrepStatement.setString(7, returndate.toString() + " 18:00:00");
+                        insertCarPrepStatement.setString(8, car_rental_booking_date);
+                        insertCarPrepStatement.setDouble(9, car_rental_cost);
+                        insertCarPrepStatement.setDouble(10, car_rental_tax);
+                        insertCarPrepStatement.setDouble(11, car_rental_booking_fees);
+                        insertCarPrepStatement.setDouble(12, car_rental_total_cost);
+                        insertCarPrepStatement.setString(13, insurance);
+                        insertCarPrepStatement.executeUpdate();
+                    }
                     return bookingType;
                 default:
                     System.out.println("Invalid option. Please try again.");
